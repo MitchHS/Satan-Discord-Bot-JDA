@@ -8,10 +8,11 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 import javax.security.auth.login.LoginException;
 import java.util.List;
+import java.util.Scanner;
 
 public class Main extends ListenerAdapter {
 
-    String token = "NzE2NTMwMDI1MzQzNzQ2MTI5.XtTk3Q.JHgRm1rw98rvA8Ls_QrqleElyWI";
+
 //     public static void main(String[] args) {
 //          JDA jda;
 //          String token = "NzE2NTMwMDI1MzQzNzQ2MTI5.XtTk3Q.JHgRm1rw98rvA8Ls_QrqleElyWI";
@@ -24,18 +25,75 @@ public class Main extends ListenerAdapter {
 //     }
 
     public static void main(String[] args) throws LoginException
+
     {
+        String menuOption;
+        String token = "NzE2NTMwMDI1MzQzNzQ2MTI5.XtTk3Q.JHgRm1rw98rvA8Ls_QrqleElyWI";
+        JDA jda = null;
+
+        Scanner in = new Scanner(System.in);
+        MessageListener messageListener = new MessageListener();
+        VoiceEventListener voiceEventListener = new VoiceEventListener();
 
 
-        JDA jda = new JDABuilder("NzE2NTMwMDI1MzQzNzQ2MTI5.XtTk3Q.JHgRm1rw98rvA8Ls_QrqleElyWI").build();
+
+        do {
+            System.out.print("\n -- SATAN DISCORD BOT -- \n");
+            System.out.print("Select Option:\n");
+            System.out.print("A - Add user/s to troll list. Syntax: user user2 \n");
+            System.out.print("W - Add user to immunity mute whitelist\n");
+            System.out.print("C - Connect bot and add listeners\n");
+            System.out.print("R - Remove all users from troll list\n");
+            System.out.print("P - Print whitelist and troll list\n");
+            System.out.print("D - Disconnect bot\n");
+            System.out.print("Q - Quit app and disconnect bot\n");
+
+            menuOption = in.next();
 
 
-        jda.addEventListener(new MessageListener());
-        jda.addEventListener(new EventListener());
+            switch (menuOption) {
+                case "B":
+                    voiceEventListener.setBlacklist();
+                    break;
+                case "W":
+                    voiceEventListener.setWhitelist();
+                    break;
+                case "I":
+                    voiceEventListener.setInterceptList();
+                    break;
+                case "D":
+                    // Disconnect
+                    if (jda != null) {
+                        jda.shutdownNow();
+                        System.out.println("Shutting down bot");
+                    } else { System.out.println("No bot available: Connect bot first");}
+                    break;
+                case "C":
+                    jda = new JDABuilder(token).build();
+                    jda.addEventListener(voiceEventListener);
+                    jda.addEventListener(messageListener);
+                    System.out.println("connected.");
+                    break;
+                case "Q":
+                    System.out.printf("\nQutting and disconnecting bot\n");
+                    break;
+                case "P":
+                    System.out.println("Blacklisted users: " + voiceEventListener.getVoiceBlacklist().toString());
+                    System.out.println("Whitelisted users: " + voiceEventListener.getWhitelist().toString());
+                    System.out.println("Voice intercept users: " + voiceEventListener.getInterceptList().toString());
+                default:
+                    System.out.println("Enter valid option");
+                    break;
+            }
 
 
-
+        } while (menuOption.compareToIgnoreCase("Q") != 0);
+        System.exit(0);
     }
+
+
+
+
 
 
 
