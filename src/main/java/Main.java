@@ -42,6 +42,7 @@ public class Main extends ListenerAdapter {
             System.out.print("Select Option:\n");
             System.out.print("A - Add user/s to troll list. Syntax: user user2 \n");
             System.out.print("W - Add user to immunity mute whitelist\n");
+            System.out.print("I - Add user to voice channel intercept list\n");
             System.out.print("C - Connect bot and add listeners\n");
             System.out.print("R - Remove all users from troll list\n");
             System.out.print("P - Print whitelist and troll list\n");

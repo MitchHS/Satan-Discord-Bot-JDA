@@ -6,12 +6,14 @@ import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.managers.AudioManager;
 
+import java.nio.channels.Channel;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -59,12 +61,27 @@ public class MusicListener extends ListenerAdapter {
         } else if ("!resume".equals(command[0])) {
             resume(event.getChannel());
         } else if ("!music".equals(command[0])){
-            String line = "-----------------------------------";
-            String title = "\nMusic Commands\n";
-            String cmds = "\n!play youtube.xxxx - Join voice channel & add music to queue." +
-                    "\n!skip - Skips current song in queue.\n!pause - Pause current song in queue." +
-                    "\n!resume - Resume current song in queue.\n!stop - Stops current song in queue.";
-            event.getChannel().sendMessage(line + title + line + cmds).queue();
+            String line  ="------------------------------------------------------------------------------------";
+            String title ="\n                                     \t\t\tMusic Commands\n";
+            String play  ="\n          !play youtube.xxxx - Join voice channel & add music to queue." ;
+            String skip=  "\n          !skip - Skips current song in queue.";
+            String pause= "\n          !pause - Pause current song in queue.";
+            String resume= "\n          !resume - Resume current song in queue.";
+            String stop = "\n          !stop - Stops current song in queue.";
+            String cmd = play + skip + pause + resume + stop;
+            event.getChannel().sendMessage(line + title + line + cmd + "\n" + line).queue();
+        } else if ("!volume".equals(command[0])) {
+            Message msg = event.getMessage();
+            String content = msg.getContentRaw();
+            content = content.replace("!volume ","");
+            TextChannel channel = event.getChannel();
+            GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
+            try {
+                //setVolume(musicManager, Integer.valueOf(content));
+            } catch (Exception e) {
+                event.getChannel().sendMessage("Error, enter valid number");
+            }
+
         }
 
         super.onGuildMessageReceived(event);
@@ -116,6 +133,11 @@ public class MusicListener extends ListenerAdapter {
 
     }
 
+//    private void setVolume(GuildMusicManager musicManager, int volume){
+//        System.out.println(volume);
+//        musicManager.player.setVolume(volume);
+//    }
+
     private void stop(TextChannel channel){
         GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
         musicManager.player.stopTrack();
@@ -150,5 +172,6 @@ public class MusicListener extends ListenerAdapter {
 //            }
 //        }
         audioManager.openAudioConnection(vc);
+
     }
 }
