@@ -72,6 +72,7 @@ public class Main extends ListenerAdapter {
                     jda = new JDABuilder(token).build();
                     jda.addEventListener(voiceEventListener);
                     jda.addEventListener(messageListener);
+                    jda.addEventListener(new MusicListener());
                     System.out.println("connected.");
                     break;
                 case "Q":
