@@ -22,6 +22,8 @@ public class MusicListener extends ListenerAdapter {
 
     public final AudioPlayerManager playerManager;
     public final Map<Long, GuildMusicManager> musicManagers;
+    public long guildID;
+
 
     public MusicListener() {
         this.musicManagers = new HashMap<>();
@@ -29,11 +31,14 @@ public class MusicListener extends ListenerAdapter {
         this.playerManager = new DefaultAudioPlayerManager();
         AudioSourceManagers.registerRemoteSources(playerManager);
         AudioSourceManagers.registerLocalSource(playerManager);
+
     }
 
     private synchronized GuildMusicManager getGuildAudioPlayer(Guild guild) {
         long guildId = Long.parseLong(guild.getId());
         GuildMusicManager musicManager = musicManagers.get(guildId);
+        this.guildID = guildId;
+
 
         if (musicManager == null) {
             musicManager = new GuildMusicManager(playerManager);
@@ -51,6 +56,9 @@ public class MusicListener extends ListenerAdapter {
 
         if ("!play".equals(command[0]) && command.length == 2) {
             VoiceChannel voiceChannel = event.getMember().getVoiceState().getChannel();
+            if(voiceChannel == null){event.getChannel().sendMessage("Join a voice channel before attempting to play.. ").queue();
+            return;
+            }
             loadAndPlay(event.getChannel(), command[1], voiceChannel);
         } else if ("!skip".equals(command[0])) {
             skipTrack(event.getChannel());
@@ -76,11 +84,13 @@ public class MusicListener extends ListenerAdapter {
             content = content.replace("!volume ","");
             TextChannel channel = event.getChannel();
             GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
+
             try {
-                //setVolume(musicManager, Integer.valueOf(content));
+                setVolume(musicManagers.get(event.getGuild().getIdLong()), Integer.valueOf(content));
             } catch (Exception e) {
                 event.getChannel().sendMessage("Error, enter valid number");
             }
+            event.getChannel().sendMessage("Volumed changed to: " + content).queue();
 
         }
 
@@ -133,10 +143,9 @@ public class MusicListener extends ListenerAdapter {
 
     }
 
-//    private void setVolume(GuildMusicManager musicManager, int volume){
-//        System.out.println(volume);
-//        musicManager.player.setVolume(volume);
-//    }
+    private void setVolume(GuildMusicManager musicManager, int volume){
+        musicManager.player.setVolume(volume);
+    }
 
     private void stop(TextChannel channel){
         GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
@@ -146,7 +155,7 @@ public class MusicListener extends ListenerAdapter {
 
     private void pause(TextChannel channel){
         GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
-        channel.sendMessage("Stopping " + musicManager.player.getPlayingTrack().getInfo()).queue();
+        channel.sendMessage("Pausing " + musicManager.player.getPlayingTrack().getInfo().title).queue();
         musicManager.player.setPaused(true);
 
     }

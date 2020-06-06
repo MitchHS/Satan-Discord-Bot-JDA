@@ -17,6 +17,7 @@ public class VoiceEventListener extends ListenerAdapter {
     ArrayList<String> whitelist = new ArrayList<>();
     ArrayList<String> interceptList = new ArrayList<>();
 
+
 //    public VoiceEventListener(ArrayList<String> whitelist, ArrayList<String> voiceBlacklist, ArrayList<String> interceptList){
 //        this.whitelist = whitelist;
 //        this.voiceBlacklist = voiceBlacklist;
@@ -27,21 +28,21 @@ public class VoiceEventListener extends ListenerAdapter {
     public void onGuildVoiceMute(@Nonnull GuildVoiceMuteEvent event) {
         super.onGuildVoiceMute(event);
         Member member = event.getMember();
-        System.out.println(member.getEffectiveName() + member.getVoiceState().isGuildMuted());
 
-        if(member.getEffectiveName().contains("SonicLiquid")){
-            if(!member.getVoiceState().isGuildMuted()){
-                System.out.println("Event > unmuted");
-                event.getGuild().mute(member, true).queue();
 
-            }
-        }
+//        if(member.getUser().getName().contains("SonicLiquid")){
+//            if(!member.getVoiceState().isGuildMuted()){
+//                System.out.println("Event > unmuted");
+//                event.getGuild().mute(member, true).queue();
+//
+//            }
+//        }
 
         if(!voiceBlacklist.isEmpty())
         {
             for(int x = 0; x< voiceBlacklist.size(); x++)
             {
-                if (member.getEffectiveName().contains(voiceBlacklist.get(x))) {
+                if (member.getUser().getName().contains(voiceBlacklist.get(x))) {
                     if (!member.getVoiceState().isGuildMuted()) {
                         event.getGuild().mute(member, true).queue();
                     }
@@ -54,7 +55,7 @@ public class VoiceEventListener extends ListenerAdapter {
         {
             for(int x =0; x < whitelist.size(); x ++)
             {
-                if (member.getEffectiveName().contains(whitelist.get(x))) {
+                if (member.getUser().getName().contains(whitelist.get(x))) {
                     if (member.getVoiceState().isGuildMuted()) {
                         event.getGuild().mute(member, false).queue();
                     }
@@ -71,7 +72,7 @@ public class VoiceEventListener extends ListenerAdapter {
       //  System.out.println("Joined voice channel: " + event.getMember().toString());
         if(!interceptList.isEmpty()){
             for(int x=0; x<interceptList.size(); x++){
-                if(member.getEffectiveName().contains(interceptList.get(x))){
+                if(member.getUser().getName().contains(interceptList.get(x))){
                     VoiceChannel afk = event.getGuild().getAfkChannel();
                     event.getGuild().moveVoiceMember(member, afk).queue();
                 }
@@ -87,7 +88,7 @@ public class VoiceEventListener extends ListenerAdapter {
         System.out.println("Joined voice channel: " + event.getMember().toString());
         if(!interceptList.isEmpty() && event.getChannelJoined()!=event.getGuild().getAfkChannel()){
             for(int x=0; x<interceptList.size(); x++){
-                if(member.getEffectiveName().contains(interceptList.get(x))){
+                if(member.getUser().getName().contains(interceptList.get(x))){
                     VoiceChannel afk = event.getGuild().getAfkChannel();
                     event.getGuild().moveVoiceMember(member, afk).queue();
                 }
@@ -105,6 +106,14 @@ public class VoiceEventListener extends ListenerAdapter {
 
     public ArrayList<String> getWhitelist() {
         return this.whitelist;
+    }
+
+    public void purgeBlackList(){
+        this.getVoiceBlacklist().clear();
+    }
+
+    public void purgeInterceptList(){
+        this.getInterceptList().clear();
     }
 
     public void setInterceptList() {

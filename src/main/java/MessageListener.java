@@ -20,9 +20,7 @@ public class MessageListener extends ListenerAdapter
         String content = message.getContentRaw();
         MessageChannel channel = event.getChannel();
         event.getChannel();
-        System.out.println(content);
-        // getContentRaw() is an atomic getter
-        // getContentDisplay() is a lazy getter which modifies the content for e.g. console view (strip discord formatting)
+
         if (content.equals("!ping"))
         {
             channel.sendMessage("Pong!").queue(); // Important to call .queue() on the RestAction returned by sendMessage(...)
