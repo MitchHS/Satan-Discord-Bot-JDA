@@ -35,6 +35,17 @@ public class MessageListener extends ListenerAdapter
           //  Member member = event.getGuild().getMember();
 
         }
+        if (content.contains("!music")){
+            String line = "-----------------------\n";
+            String title = "Music Commands\n";
+            event.getChannel().sendMessage("TEST");
+            // Line
+            String cmds = "\n!play youtube.xxxx - Join voice channel & add music to queue." +
+                    "\n!skip - Skips current song in queue.\n!pause - Pause current song in queue." +
+                    "\n!resume - Resume current song in queue.\n!stop - Stops current song in queue.";
+            event.getChannel().sendMessage(line + title + line + cmds);
+        }
+
 
         // Text event for !choose. Randomly choose item. Syntax: !choose item item2 item3 ... cont ...
         if (content.contains("!choose")) {
