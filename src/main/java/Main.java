@@ -45,8 +45,8 @@ public class Main extends ListenerAdapter {
             System.out.print("B - Add user/s to voice blacklist. Syntax: user user2 \n");
             System.out.print("W - Add user to immunity mute whitelist Syntax: user user2\n");
             System.out.print("I - Add user to voice channel intercept list Syntax: user user2\n");
-            System.out.print("R - Remove all users from troll list\n");
-            System.out.print("P - Print whitelist and troll list\n");
+            System.out.print("R - Remove all users from troll/intercept list\n");
+            System.out.print("P - Print Users in every list\n");
             System.out.print("C - Connect bot and add listeners\n");
             System.out.print("D - Disconnect bot\n");
             System.out.print("Q - Quit app and disconnect bot\n");
@@ -64,17 +64,17 @@ public class Main extends ListenerAdapter {
                     if(voiceEventListener!=null){
                         voiceEventListener.setWhitelist();
                     }
-                    if(jda!=null){
-                    if (jda.getStatus().equals(JDA.Status.CONNECTED)) {
-                        jda.shutdownNow();
-                        System.out.println("Restarting bot");
-                        jda = new JDABuilder(token).build();
-                        jda.addEventListener(voiceEventListener);
-                        jda.addEventListener(messageListener);
-                        jda.addEventListener(new MusicListener());
-                        System.out.println("Completed");
-                    }
-                    }
+//                    if(jda!=null){
+//                    if (jda.getStatus().equals(JDA.Status.CONNECTED)) {
+//                        jda.shutdownNow();
+//                        System.out.println("Restarting bot");
+//                        jda = new JDABuilder(token).build();
+//                        jda.addEventListener(voiceEventListener);
+//                        jda.addEventListener(messageListener);
+//                        jda.addEventListener(new MusicListener());
+//                        System.out.println("Completed");
+//                    }
+//                    }
                     break;
                 case "I":
                     if(voiceEventListener!=null){
@@ -106,6 +106,7 @@ public class Main extends ListenerAdapter {
                     jda.addEventListener(voiceEventListener);
                     jda.addEventListener(messageListener);
                     jda.addEventListener(new MusicListener());
+                    jda.addEventListener(new ServerConnectionListener());
                     System.out.println("connected.");
                     break;
                 case "Q":
@@ -127,15 +128,15 @@ public class Main extends ListenerAdapter {
                         voiceEventListener.purgeInterceptList();
                         System.out.println("Purged users from blacklist/intercept list");
                     } else {System.out.println("Nothing to purge.. ");}
-                    if (jda != null) {
-                        jda.shutdownNow();
-                        System.out.println("Restarting bot");
-                        jda = new JDABuilder(token).build();
-                        jda.addEventListener(voiceEventListener);
-                        jda.addEventListener(messageListener);
-                        jda.addEventListener(musicListener);
-                        System.out.println("Completed");
-                    }
+//                    if (jda != null) {
+//                        jda.shutdownNow();
+//                        System.out.println("Restarting bot");
+//                        jda = new JDABuilder(token).build();
+//                        jda.addEventListener(voiceEventListener);
+//                        jda.addEventListener(messageListener);
+//                        jda.addEventListener(musicListener);
+//                        System.out.println("Completed");
+//                    }
                    break;
                 default:
                     System.out.println("Enter valid option");

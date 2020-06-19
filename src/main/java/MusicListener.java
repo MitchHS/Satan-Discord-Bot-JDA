@@ -5,6 +5,7 @@ import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -13,6 +14,7 @@ import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.managers.AudioManager;
 
+import java.awt.*;
 import java.nio.channels.Channel;
 import java.util.HashMap;
 import java.util.Map;
@@ -69,15 +71,19 @@ public class MusicListener extends ListenerAdapter {
         } else if ("!resume".equals(command[0])) {
             resume(event.getChannel());
         } else if ("!music".equals(command[0])){
-            String line  ="------------------------------------------------------------------------------------";
-            String title ="\n                                     \t\t\tMusic Commands\n";
+            EmbedBuilder eb = new EmbedBuilder();
+            eb.setColor(Color.RED);
+            eb.setTitle("Music Commands");
+
             String play  ="\n          !play youtube.xxxx - Join voice channel & add music to queue." ;
             String skip=  "\n          !skip - Skips current song in queue.";
             String pause= "\n          !pause - Pause current song in queue.";
             String resume= "\n          !resume - Resume current song in queue.";
             String stop = "\n          !stop - Stops current song in queue.";
             String cmd = play + skip + pause + resume + stop;
-            event.getChannel().sendMessage(line + title + line + cmd + "\n" + line).queue();
+            eb.addField("", cmd, true);
+            event.getChannel().sendMessage(eb.build()).queue();
+
         } else if ("!volume".equals(command[0])) {
             Message msg = event.getMessage();
             String content = msg.getContentRaw();
