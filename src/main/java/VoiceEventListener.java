@@ -4,6 +4,7 @@ import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceJoinEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceMoveEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceMuteEvent;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 import javax.annotation.Nonnull;
@@ -23,6 +24,40 @@ public class VoiceEventListener extends ListenerAdapter {
 //        this.voiceBlacklist = voiceBlacklist;
 //        this.interceptList = interceptList;
 //    }
+
+
+    @Override
+    public void onGuildMessageReceived(@Nonnull GuildMessageReceivedEvent event) {
+        super.onGuildMessageReceived(event);
+        String[] command = event.getMessage().getContentRaw().split(" ", 10);
+        if(command[0].contains("!mute") && event.getMember().getUser().getName().contains("SonicLiquid")){
+            voiceBlacklist.add(command[1]);
+            event.getChannel().sendMessage("Yeah shut the fuck up " + command[1]).queue();
+        }
+
+        if(command[0].contains("!unmute") && event.getMember().getUser().getName().contains("SonicLiquid")){
+           for(int x = 0; x < voiceBlacklist.size(); x++){
+               if(voiceBlacklist.get(x).equals(command[1])){
+                   voiceBlacklist.remove(x);
+                   event.getChannel().sendMessage("Ok removed :(").queue();
+               }
+           }
+        }
+
+        if(command[0].contains("!intercept") && event.getMember().getUser().getName().contains("SonicLiquid")){
+            interceptList.add(command[1]);
+            event.getChannel().sendMessage("Fucking good luck " + command[1]).queue();
+        }
+
+        if(command[0].contains("!unintercept") && event.getMember().getUser().getName().contains("SonicLiquid")){
+            for(int x = 0; x < interceptList.size(); x++){
+                if(interceptList.get(x).equals(command[1])){
+                    interceptList.remove(x);
+                    event.getChannel().sendMessage("Ok removed :(").queue();
+                }
+            }
+        }
+    }
 
     @Override
     public void onGuildVoiceMute(@Nonnull GuildVoiceMuteEvent event) {

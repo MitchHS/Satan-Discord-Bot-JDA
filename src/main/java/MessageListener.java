@@ -20,6 +20,7 @@ public class MessageListener extends ListenerAdapter
     @Override
     public void onMessageReceived(MessageReceivedEvent event)
     {
+        String[] command = event.getMessage().getContentRaw().split(" ", 10);
         if (event.getAuthor().isBot()) return;
 
         Message message = event.getMessage();
@@ -41,13 +42,6 @@ public class MessageListener extends ListenerAdapter
             defaultText.sendMessage("U fucking wot " +"<@" + name+">").addFile(new File("/home/pi/watchu.gif")).queue();
         }
 
-//        if(content.contains("!mute")){
-//            String msg = content;
-//            msg = msg.replace("!mute ", "");
-//
-//          //  Member member = event.getGuild().getMember();
-//
-//        }
 
 
 
@@ -67,22 +61,21 @@ public class MessageListener extends ListenerAdapter
         if(content.contains("!"))
 
         if(content.contains("!commands")){
-            MessageBuilder mb = new MessageBuilder();
-            String first  ="                                   |     \n";
-            String second = ",---.,---.,-.-.,-.-.,---.,---.,---|,---.\n";
-            String third  = "|    |   || | || | |,---||   ||   |`---.\n";
-            String fourth = "`---'`---'` ' '` ' '`---^`   '`---'`---'\n";
-            String command =  "!ping - Smokescreen cmd\n"
-                    + "!music - Displays music commands\n" +
-                    "!choose item item2 ... itemXX - Randomly chooses item\n" +
-                    "!dicksize @user - Accurate dicksize in inches\n" +
-                    "!invite - Generates invite link";
+
+            String ping = "Smokescreen cmd";
+            String music = "Displays music commands";
+            String choose = "Randomly chooses item";
+            String dickSize = "Accurate dicksize in inches";
+            String invite = "Generates invite link";
 
             EmbedBuilder eb = new EmbedBuilder();
             eb.setTitle("Commands");
             eb.setColor(Color.RED);
-            eb.addField("", command, true);
-
+            eb.addField("!ping", ping, false);
+            eb.addField("!music", music, false);
+            eb.addField("!choose item item2 .... itemX", choose, false);
+            eb.addField("!dicksize @user", dickSize, false);
+            eb.addField("!invite", invite, false);
 
             event.getChannel().sendMessage(eb.build()).queue();
         }
