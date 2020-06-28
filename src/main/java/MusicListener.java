@@ -16,8 +16,10 @@ import net.dv8tion.jda.api.managers.AudioManager;
 
 import java.awt.*;
 import java.nio.channels.Channel;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 public class MusicListener extends ListenerAdapter {
 
@@ -25,6 +27,7 @@ public class MusicListener extends ListenerAdapter {
     public final AudioPlayerManager playerManager;
     public final Map<Long, GuildMusicManager> musicManagers;
     public long guildID;
+    public ArrayList<Playlist> musicPlaylist = new ArrayList<>();
 
 
     public MusicListener() {
@@ -56,51 +59,149 @@ public class MusicListener extends ListenerAdapter {
     public void onGuildMessageReceived(GuildMessageReceivedEvent event) {
         String[] command = event.getMessage().getContentRaw().split(" ", 2);
 
-        if ("!play".equals(command[0]) && command.length == 2) {
+        switch (command[0]){
+            case "!volume":
+                Message msg = event.getMessage();
+                String content = msg.getContentRaw();
+                content = content.replace("!volume ","");
+                TextChannel channel = event.getChannel();
+                GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
+
+                try {
+                    setVolume(musicManagers.get(event.getGuild().getIdLong()), Integer.valueOf(content));
+                } catch (Exception e) {
+                    event.getChannel().sendMessage("Error, enter valid number");
+                }
+                event.getChannel().sendMessage("Volumed changed to: " + content).queue();
+                break;
+
+            case "!music":
+                EmbedBuilder eb = new EmbedBuilder();
+                eb.setColor(Color.RED);
+                eb.setTitle("Music Commands");
+
+                String play  ="\n          !play youtube.xxxx - Join voice channel & add music to queue." ;
+                String skip=  "\n          !skip - Skips current song in queue.";
+                String pause= "\n          !pause - Pause current song in queue.";
+                String resume= "\n          !resume - Resume current song in queue.";
+                String stop = "\n          !stop - Stops current song in queue.";
+                String cmd = play + skip + pause + resume + stop;
+                eb.addField("", cmd, true);
+                event.getChannel().sendMessage(eb.build()).queue();
+                break;
+
+            case "!newPlaylist":
+                Playlist playlist = new Playlist(command[1], new ArrayList<String>());
+                musicPlaylist.add(playlist);
+                event.getChannel().sendMessage("Added " + playlist.getName() + " to playlists").queue();
+               // System.out.println(musicPlaylist.get(0).getName());
+                break;
+
+            case "!Playlists":
+                EmbedBuilder playEb = new EmbedBuilder();
+                playEb.setColor(Color.RED);
+                playEb.setTitle("Existing playlists: ");
+                String list = "";
+                if(!musicPlaylist.isEmpty()) {
+                    for (Playlist p : musicPlaylist) {
+                        list = list + p.toString() + "\n";
+                    }
+                }
+                playEb.addField("", list, true );
+                event.getChannel().sendMessage(playEb.build()).queue();
+                break;
+
+
+            case "!resume":
+                resume(event.getChannel());
+                break;
+
+            case "!stop":
+                stop(event.getChannel());
+                break;
+
+            case "!pause":
+                pause(event.getChannel());
+                break;
+
+            case "!skip":
+                skipTrack(event.getChannel());
+                break;
+
+            case "!play":
+                if (command.length == 2) {
             VoiceChannel voiceChannel = event.getMember().getVoiceState().getChannel();
             if(voiceChannel == null){event.getChannel().sendMessage("Join a voice channel before attempting to play.. ").queue();
-            return;
+               return;
             }
             loadAndPlay(event.getChannel(), command[1], voiceChannel);
-        } else if ("!skip".equals(command[0])) {
-            skipTrack(event.getChannel());
-        } else if ("!pause".equals(command[0])) {
-            pause(event.getChannel());
-        } else if ("!stop".equals(command[0])) {
-            stop(event.getChannel());
-        } else if ("!resume".equals(command[0])) {
-            resume(event.getChannel());
-        } else if ("!music".equals(command[0])){
-            EmbedBuilder eb = new EmbedBuilder();
-            eb.setColor(Color.RED);
-            eb.setTitle("Music Commands");
+          }
+                break;
 
-            String play  ="\n          !play youtube.xxxx - Join voice channel & add music to queue." ;
-            String skip=  "\n          !skip - Skips current song in queue.";
-            String pause= "\n          !pause - Pause current song in queue.";
-            String resume= "\n          !resume - Resume current song in queue.";
-            String stop = "\n          !stop - Stops current song in queue.";
-            String cmd = play + skip + pause + resume + stop;
-            eb.addField("", cmd, true);
-            event.getChannel().sendMessage(eb.build()).queue();
-
-        } else if ("!volume".equals(command[0])) {
-            Message msg = event.getMessage();
-            String content = msg.getContentRaw();
-            content = content.replace("!volume ","");
-            TextChannel channel = event.getChannel();
-            GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
-
-            try {
-                setVolume(musicManagers.get(event.getGuild().getIdLong()), Integer.valueOf(content));
-            } catch (Exception e) {
-                event.getChannel().sendMessage("Error, enter valid number");
-            }
-            event.getChannel().sendMessage("Volumed changed to: " + content).queue();
-
+            default:
+                break;
         }
 
-        super.onGuildMessageReceived(event);
+    //    if ("!play".equals(command[0]) && command.length == 2) {
+//            VoiceChannel voiceChannel = event.getMember().getVoiceState().getChannel();
+//            if(voiceChannel == null){event.getChannel().sendMessage("Join a voice channel before attempting to play.. ").queue();
+//            return;
+//            }
+//            loadAndPlay(event.getChannel(), command[1], voiceChannel);
+//        } else if ("!skip".equals(command[0])) {
+//            skipTrack(event.getChannel());
+//        } else if ("!pause".equals(command[0])) {
+//            pause(event.getChannel());
+//        } else if ("!stop".equals(command[0])) {
+//            stop(event.getChannel());
+//        } else if ("!resume".equals(command[0])) {
+//            resume(event.getChannel());
+//        } else if (command[0].contains("!newPlaylist")) {
+//            Message message = event.getMessage();
+//            String content = message.getContentRaw();
+//            String msg = content;
+//            Random random = new Random();
+//
+//            msg = msg.replace("!newPlaylist ", "");
+//            String[] splitString = msg.split("\\s+");
+//            Playlist playlist = new Playlist(command[1], new ArrayList<String>());
+//            musicPlaylist.add(playlist);
+//            event.getChannel().sendMessage("Added " + playlist.getName() + " to playlists");
+//            System.out.println(musicPlaylist.get(0).getName());
+
+
+//        } else if ("!music".equals(command[0])){
+//            EmbedBuilder eb = new EmbedBuilder();
+//            eb.setColor(Color.RED);
+//            eb.setTitle("Music Commands");
+//
+//            String play  ="\n          !play youtube.xxxx - Join voice channel & add music to queue." ;
+//            String skip=  "\n          !skip - Skips current song in queue.";
+//            String pause= "\n          !pause - Pause current song in queue.";
+//            String resume= "\n          !resume - Resume current song in queue.";
+//            String stop = "\n          !stop - Stops current song in queue.";
+//            String cmd = play + skip + pause + resume + stop;
+//            eb.addField("", cmd, true);
+//            event.getChannel().sendMessage(eb.build()).queue();
+
+//        } else if ("!v".equals(command[0])) {
+//            Message msg = event.getMessage();
+//            String content = msg.getContentRaw();
+//            content = content.replace("!volume ","");
+//            TextChannel channel = event.getChannel();
+//            GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
+//
+//            try {
+//                setVolume(musicManagers.get(event.getGuild().getIdLong()), Integer.valueOf(content));
+//            } catch (Exception e) {
+//                event.getChannel().sendMessage("Error, enter valid number");
+//            }
+//            event.getChannel().sendMessage("Volumed changed to: " + content).queue();
+//
+//        }
+
+
+            super.onGuildMessageReceived(event);
     }
 
     private void loadAndPlay(final TextChannel channel, final String trackUrl, VoiceChannel vc) {
@@ -176,7 +277,7 @@ public class MusicListener extends ListenerAdapter {
         GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
         musicManager.scheduler.nextTrack();
 
-        channel.sendMessage("Skipped to next track.").queue();
+        channel.sendMessage("Skipped to next track: " +  musicManager.player.getPlayingTrack().getInfo().title).queue();
     }
 
     private static void connectToFirstVoiceChannel(AudioManager audioManager, VoiceChannel vc) {
@@ -188,5 +289,29 @@ public class MusicListener extends ListenerAdapter {
 //        }
         audioManager.openAudioConnection(vc);
 
+    }
+
+    // Inner class for game type playlists. Will be reset on bot shutdown. Could save the playlists to file if neccessary.
+    class Playlist {
+        String name;
+        ArrayList<String> urlList;
+
+        public Playlist(String name, ArrayList<String> urlList){
+            this.name = name;
+            this.urlList = urlList;
+        }
+
+        public String getName() {
+            return this.name;
+        }
+
+        public ArrayList<String> getPlaylist() {
+            return this.urlList;
+        }
+
+        @Override
+        public String toString() {
+           return this.name;
+        }
     }
 }
