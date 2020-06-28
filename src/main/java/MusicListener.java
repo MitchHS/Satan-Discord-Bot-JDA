@@ -108,7 +108,7 @@ public class MusicListener extends ListenerAdapter {
                 eb.addField("!newPlaylist playlistName", newPlaylist, false);
                 eb.addField("!add playlistName youtube.xx", add, false);
                 eb.addField("!playlistList", listPlaylist, false);
-                eb.addField("!listSongs playlistName", listSonglist, false);
+                eb.addField("!songList playlistName", listSonglist, false);
                 eb.addField("!removePlaylist playlistName", removePlaylist, false);
                 eb.addField("!remove playlistName songTitle", remove, false);
 

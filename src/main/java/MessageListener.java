@@ -43,9 +43,6 @@ public class MessageListener extends ListenerAdapter
         }
 
 
-
-
-
         // Text event for !choose. Randomly choose item. Syntax: !choose item item2 item3 ... cont ...
         if (content.contains("!choose")) {
             String msg = content;
