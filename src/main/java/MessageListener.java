@@ -37,9 +37,9 @@ public class MessageListener extends ListenerAdapter
         {
             Member member = event.getMember();
             String name = member.getUser().getId();
-            TextChannel defaultText = event.getGuild().getDefaultChannel();
+            TextChannel textChannel = event.getTextChannel();
 //            defaultText.sendMessage("U fucking wot " +"<@" + name).
-            defaultText.sendMessage("U fucking wot " +"<@" + name+">").addFile(new File("/home/pi/watchu.gif")).queue();
+            textChannel.sendMessage("U fucking wot " +"<@" + name+">").addFile(new File("/home/pi/satanBot/watchu.gif")).queue();
         }
 
 
@@ -55,7 +55,7 @@ public class MessageListener extends ListenerAdapter
             channel.sendMessage("Gaben Says: " + splited[select]).queue();
         }
 
-        if(content.contains("!"))
+
 
         if(content.contains("!commands")){
 

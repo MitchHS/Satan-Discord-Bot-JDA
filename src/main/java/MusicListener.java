@@ -14,12 +14,10 @@ import net.dv8tion.jda.api.managers.AudioManager;
 import org.apache.commons.io.IOUtils;
 
 import java.awt.*;
+import java.io.*;
 import java.net.URL;
 import java.nio.channels.Channel;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.net.URL;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
@@ -123,11 +121,23 @@ public class MusicListener extends ListenerAdapter {
                     Playlist playlist = new Playlist(command[1], new ArrayList<String>());
                     musicPlaylist.add(playlist);
                     event.getChannel().sendMessage("Added " + playlist.getName() + " to playlists").queue();
-                    // System.out.println(musicPlaylist.get(0).getName());
+
+                    File playlistFolder = new File(System.getProperty("users.dir") + "playlists");
+                    System.out.println("Absolute path the folder: " + playlistFolder.getAbsolutePath());
+
+                    if(playlistFolder.exists() && playlistFolder.isDirectory()){
+                        try{
+                            File newPlaylistFile = new File(playlistFolder.getAbsolutePath() + "/" + command[1] + ".txt");
+                            newPlaylistFile.createNewFile();
+                            System.out.println("Creating new playing to dir: " + newPlaylistFile.getName());
+                        } catch (IOException e){
+                            System.out.println("Error creating file: " + e);
+                        }
+                    }
+
                 } else {
                     event.getChannel().sendMessage("Syntax error:  !newPlaylist playlistName").queue();
                 }
-
                 break;
 
             case "!removePlaylist":
@@ -135,6 +145,11 @@ public class MusicListener extends ListenerAdapter {
                     for(int x = 0; x < musicPlaylist.size(); x ++){
                         if(command[1].equals(musicPlaylist.get(x).getName())){
                             musicPlaylist.remove(x);
+
+                            // If found in memory arraylist it must exist as a text file.
+                            File playlistFolder = new File(System.getProperty("users.dir") + "playlists");
+                            File playlistFile = new File(playlistFolder.getAbsolutePath() + "/" + command[1] + ".txt");
+                            playlistFile.delete();
                             event.getChannel().sendMessage("Successfully removed " + command[1]).queue();
                             break;
                         } else if (x == musicPlaylist.size() -1){
@@ -197,6 +212,7 @@ public class MusicListener extends ListenerAdapter {
                 } catch (IndexOutOfBoundsException e){
                     event.getChannel().sendMessage("Invalid Sytax:  !add playlistName youtube.xx").queue();
                 }
+                // Error check
                 if(name!=null && url !=null) {
                     if (name.isEmpty()) {
                         event.getChannel().sendMessage("Error, please provide a playlist").queue();
@@ -204,16 +220,36 @@ public class MusicListener extends ListenerAdapter {
                         event.getChannel().sendMessage("Error, please provide a YouTube URL").queue();
                     } else {
 
+                        // Add into current memory playlist
                         for (int x = 0; x < musicPlaylist.size(); x++) {
                             if (name.equals(musicPlaylist.get(x).getName())) {
                                 musicPlaylist.get(x).addURL(url);
-                                //   System.out.println(musicPlaylist.get(x).getPlaylist());
-                                //  event.getChannel().sendMessage("Added url to " + musicPlaylist.get(x).getName()).queue();
                                 event.getChannel().sendMessage("Adding " + getTitleQuietly(url) + " to " + musicPlaylist.get(x).getName()).queue();
                                 break;
                             } else if (x == musicPlaylist.size() - 1 && !name.equals(musicPlaylist.get(x).getName())) {
                                 event.getChannel().sendMessage("Cannot add to playlist " + command[1].toString() + ". Playlist does not exist").queue();
                             }
+                        }
+
+                        // Add into txt file for persistence
+                        try {
+                            File playlistFolder = new File(System.getProperty("users.dir") + "playlists");
+                            File files[] = playlistFolder.listFiles();
+
+                            for(int x = 0; x < files.length; x++){
+                               String fName = files[x].getName();
+                               fName = fName.replace(".txt", "");
+                               if(fName.equals(name)){
+                                   System.out.println("Writing to file: " + name + " with data : " + url);
+                                   FileWriter myWriter = new FileWriter(files[x]);
+                                   myWriter.write(url);
+                                   myWriter.close();
+                                   break;
+                               }
+                            }
+
+                        }catch (IOException e){
+
                         }
 
                     }
@@ -237,9 +273,15 @@ public class MusicListener extends ListenerAdapter {
                         System.out.println("split length > 1");
                         for(int x = 0; x < musicPlaylist.size(); x ++){
                                 if(split[0].equals(musicPlaylist.get(x).getName())){
+                                    // Remove playlist name from msg content. Can be achieved by calling commands[2]
+                                    // need to redo this section later.
                                    msgContent = msgContent.replaceAll(split[0]+" ", "");
-                                   System.out.println("After remove:" + msgContent);
                                     boolean ret = musicPlaylist.get(x).removeSongByTitle(msgContent);
+
+                                    // Removing line from txt file
+                                    File playlistFolder = new File(System.getProperty("users.dir") + "playlists");
+                                    File playlistFile = new File(playlistFolder.getAbsolutePath() + "/" + musicPlaylist.get(x).getName() + ".txt");
+                                    removeUrlFromFile(playlistFile, msgContent);
                                     event.getChannel().sendMessage("Removed : " + ret).queue();
                                     break;
                                 } else if (x == musicPlaylist.size()-1){
@@ -290,8 +332,7 @@ public class MusicListener extends ListenerAdapter {
                                         event.getChannel().sendMessage("Join a voice channel before attempting to play.. ").queue();
                                         break;
                                     }
-                                    silentLoadAndPlay(event.getChannel(), s, voiceChannel);
-                                    event.getChannel().sendMessage("Adding playlist to current queue..").queue();
+                                    loadAndPlay(event.getChannel(), s, voiceChannel);
                                 }
                             }
                         }
@@ -415,42 +456,6 @@ public class MusicListener extends ListenerAdapter {
         });
     }
 
-    private void silentLoadAndPlay(final TextChannel channel, final String trackUrl, VoiceChannel vc) {
-        GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
-
-        playerManager.loadItemOrdered(musicManager, trackUrl, new AudioLoadResultHandler() {
-            @Override
-            public void trackLoaded(AudioTrack track) {
-               // channel.sendMessage("Adding to queue " + track.getInfo().title).queue();
-
-                play(channel.getGuild(), musicManager, track, vc);
-            }
-
-            @Override
-            public void playlistLoaded(AudioPlaylist playlist) {
-                AudioTrack firstTrack = playlist.getSelectedTrack();
-
-                if (firstTrack == null) {
-                    firstTrack = playlist.getTracks().get(0);
-                }
-
-              //  channel.sendMessage("Adding to queue " + firstTrack.getInfo().title + " (first track of playlist " + playlist.getName() + ")").queue();
-
-                play(channel.getGuild(), musicManager, firstTrack, vc);
-            }
-
-            @Override
-            public void noMatches() {
-                channel.sendMessage("Nothing found by " + trackUrl).queue();
-            }
-
-            @Override
-            public void loadFailed(FriendlyException exception) {
-                channel.sendMessage("Could not play: " + exception.getMessage()).queue();
-
-            }
-        });
-    }
 
 
 
@@ -502,6 +507,7 @@ public class MusicListener extends ListenerAdapter {
 
     }
 
+    // Title of youtube url
     public static String getTitleQuietly(String youtubeUrl) {
         try {
             if (youtubeUrl != null) {
@@ -516,6 +522,79 @@ public class MusicListener extends ListenerAdapter {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public boolean removeUrlFromFile(File playlist, String title){
+        File inputFile = playlist;
+        String tmp = playlist.getAbsolutePath().replace(".txt","") + "tmp" + ".txt";
+        File tempFile = new File(tmp);
+        if(inputFile.exists()) {
+            try {
+                BufferedReader reader = new BufferedReader(new FileReader(inputFile));
+                BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile));
+
+                String lineToRemove = title;
+                String currentLine;
+
+                while ((currentLine = reader.readLine()) != null) {
+                    // trim newline when comparing with lineToRemove
+                    String trimmedLine = currentLine.trim();
+                    //  if (trimmedLine.equals(lineToRemove)) continue;
+                    if (getTitleQuietly(trimmedLine).equals(lineToRemove)) {
+                        System.out.println("txt file lines mathc");
+                        continue;
+                    }
+
+                    writer.write(currentLine + System.getProperty("line.separator"));
+                }
+                writer.close();
+                reader.close();
+            } catch (Exception e) {
+                System.out.println("Error while removing url: " + e);
+            }
+            playlist.delete();
+            boolean successful = tempFile.renameTo(playlist);
+            System.out.println("rename: " + successful);
+            return successful;
+        } else {System.out.println("Playlist file not found"); return  false;}
+    }
+
+    // init Directories for playlists, read existing playlists.
+    public void init(){
+        String workingDir = System.getProperty("user.dir");
+        File playlists = new File(System.getProperty("users.dir") + "playlists");
+
+
+       if(playlists.exists() && playlists.isDirectory()){
+           System.out.println("Environment existing - Ready..");
+           File[] listFiles = playlists.listFiles();
+
+           if(listFiles.length <=0){
+               System.out.println("No playlists to read.");
+           } else {
+               for(int x = 0; x < listFiles.length; x++){
+                  try {
+                      ArrayList<String> urlList = new ArrayList<>();
+                      Scanner myReader = new Scanner(listFiles[x]);
+                      while (myReader.hasNextLine()){
+                          String url = myReader.nextLine();
+                          urlList.add(url);
+                      }
+                      musicPlaylist.add(new Playlist(listFiles[x].getName().replace(".txt", ""), urlList));
+                      myReader.close();
+                  }catch (FileNotFoundException e){
+
+                  }
+               }
+           }
+
+
+
+       } else {
+           System.out.println("Creating environment directories");
+           playlists.mkdir();
+           System.out.println("Complete: " + playlists.exists());
+       }
     }
 
     // Inner class for game type playlists. Will be reset on bot shutdown. Could save the playlists to file if neccessary.
