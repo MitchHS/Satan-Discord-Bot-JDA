@@ -150,7 +150,10 @@ public class MusicListener extends ListenerAdapter {
                             File playlistFolder = new File(System.getProperty("users.dir") + "playlists");
                             File playlistFile = new File(playlistFolder.getAbsolutePath() + "/" + command[1] + ".txt");
                             playlistFile.delete();
-                            event.getChannel().sendMessage("Successfully removed " + command[1]).queue();
+
+                            if(!playlistFile.exists()) {
+                                event.getChannel().sendMessage("Successfully removed " + command[1]).queue();
+                            }
                             break;
                         } else if (x == musicPlaylist.size() -1){
                             event.getChannel().sendMessage("Playlist doesn't exist: " + command[1]).queue();
@@ -209,11 +212,12 @@ public class MusicListener extends ListenerAdapter {
                 try{
                      name = command[1];
                      url = command[2];
-                } catch (IndexOutOfBoundsException e){
+
+                } catch (Exception e){
                     event.getChannel().sendMessage("Invalid Sytax:  !add playlistName youtube.xx").queue();
                 }
                 // Error check
-                if(name!=null && url !=null) {
+                if(name!=null && url !=null && url.contains("youtube")) {
                     if (name.isEmpty()) {
                         event.getChannel().sendMessage("Error, please provide a playlist").queue();
                     } else if (url.isEmpty()) {
@@ -254,7 +258,7 @@ public class MusicListener extends ListenerAdapter {
 
                     }
                 } else {
-
+                    event.getChannel().sendMessage("Invalid syntax: !add playlistName youtube.xxx").queue();
                 }
 
                 break;
@@ -267,7 +271,7 @@ public class MusicListener extends ListenerAdapter {
 
                     msgContent = msgContent.replace("!remove ", "");
                     String[] split = msgContent.split("\\s+");
-                    System.out.println("SPLIT 0 = " + split[0]);
+
 
                     if(split.length > 1){
                         System.out.println("split length > 1");
@@ -281,8 +285,9 @@ public class MusicListener extends ListenerAdapter {
                                     // Removing line from txt file
                                     File playlistFolder = new File(System.getProperty("users.dir") + "playlists");
                                     File playlistFile = new File(playlistFolder.getAbsolutePath() + "/" + musicPlaylist.get(x).getName() + ".txt");
-                                    removeUrlFromFile(playlistFile, msgContent);
-                                    event.getChannel().sendMessage("Removed : " + ret).queue();
+
+                                   boolean removed = removeUrlFromFile(playlistFile, msgContent);
+                                    if(removed){ event.getChannel().sendMessage("Removed : " + ret).queue();}
                                     break;
                                 } else if (x == musicPlaylist.size()-1){
                                     event.getChannel().sendMessage("Cannot find song").queue();
@@ -553,9 +558,8 @@ public class MusicListener extends ListenerAdapter {
                 System.out.println("Error while removing url: " + e);
             }
             playlist.delete();
-            boolean successful = tempFile.renameTo(playlist);
-            System.out.println("rename: " + successful);
-            return successful;
+            return tempFile.renameTo(playlist);
+
         } else {System.out.println("Playlist file not found"); return  false;}
     }
 
@@ -587,17 +591,14 @@ public class MusicListener extends ListenerAdapter {
                   }
                }
            }
-
-
-
        } else {
-           System.out.println("Creating environment directories");
+           System.out.println("Creating environment directories..");
            playlists.mkdir();
            System.out.println("Complete: " + playlists.exists());
        }
     }
 
-    // Inner class for game type playlists. Will be reset on bot shutdown. Could save the playlists to file if neccessary.
+    // Inner class for game type playlists. Arraylist gets populated from text files.
     class Playlist {
         String name;
         ArrayList<String> urlList;
