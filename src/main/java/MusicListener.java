@@ -125,6 +125,20 @@ public class MusicListener extends ListenerAdapter {
                getQueueTitles(event);
                 break;
 
+            case "!shuffle":
+                if(command.length == 2) {
+                    for (int x = 0; x < musicPlaylist.size(); x++) {
+                        if (command[1].equals(musicPlaylist.get(x).getName())) {
+                            shuffle(command, event, musicPlaylist.get(x));
+                            event.getChannel().sendMessage("Shuffling " + command[1]).queue();
+                            break;
+                        }
+                    }
+                } else {
+                    event.getChannel().sendMessage("Invalid syntax: !shuffle playlistName");
+                }
+                break;
+
             case "!purge":
                 try {
                     musicManagers.get(event.getGuild().getIdLong()).scheduler.purge();
@@ -339,6 +353,31 @@ public class MusicListener extends ListenerAdapter {
 //            }
 //        }
         audioManager.openAudioConnection(vc);
+
+    }
+
+    public void shuffle(String[] command, GuildMessageReceivedEvent event, Playlist playlist){
+        ArrayList<String> copy = new ArrayList<>();
+        for(String url : playlist.getPlaylist()){
+            copy.add(url);
+        }
+        System.out.println("Old order = " + copy.toString());
+        ArrayList<String> shuffled = new ArrayList<>();
+        Random random = new Random();
+        while (!copy.isEmpty()){
+         int rand = random.nextInt(copy.size());
+         shuffled.add(copy.get(rand));
+         copy.remove(rand);
+        }
+
+        System.out.println("Copy playlist size: " + copy.size());
+        System.out.println("new Order : " + shuffled.toString());
+        VoiceChannel voiceChannel = event.getMember().getVoiceState().getChannel();
+
+        for(int x = 0; x < shuffled.size(); x++){
+            loadAndPlayQuiet(event.getChannel(), shuffled.get(x), voiceChannel);
+        }
+
 
     }
 
