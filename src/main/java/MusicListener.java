@@ -63,238 +63,35 @@ public class MusicListener extends ListenerAdapter {
 
         switch (command[0]){
             case "!volume":
-                Message msg = event.getMessage();
-                String content = msg.getContentRaw();
-                content = content.replace("!volume ","");
-                TextChannel channel = event.getChannel();
-                GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
-
-                try {
-                    setVolume(musicManagers.get(event.getGuild().getIdLong()), Integer.valueOf(content));
-                } catch (Exception e) {
-                    event.getChannel().sendMessage("Error, enter valid number");
-                }
-                event.getChannel().sendMessage("Volumed changed to: " + content).queue();
+                setVolumeCommand(command, event);
                 break;
 
             case "!music":
-                EmbedBuilder eb = new EmbedBuilder();
-                eb.setColor(Color.RED);
-                eb.setTitle("Music Commands");
-
-                String play  ="            Join voice channel & add music to queue." ;
-                String skip=  "\n          !skip - Skips current song in queue.";
-                String pause= "\n          !pause - Pause current song in queue.";
-                String resume= "\n          !resume - Resume current song in queue.";
-                String stop = "\n          !stop - Stops current song in queue.";
-                String playlistCmd = "\n           Adds all songs in playlist to queue.";
-                String newPlaylist = "\n           Creates a new volatile playlist";
-                String removePlaylist = "\n           Deletes playlist completely";
-                String add = "\n           Adds video to existing playlist";
-                String listPlaylist = "\n           Lists all available playlists";
-                String listSonglist = "\n           Lists all songs in specified playlist";
-                String remove = "\n           Removes songtitle from playlist. " +
-                        "List the name exactly as it appears. Use !listSongs cmd to get titles.";
-
-
-                eb.addField("!play youtube.xxxx", play, false);
-                eb.addField("!skip", skip, false);
-                eb.addField("!pause", pause, false);
-                eb.addField("!resume", resume, false);
-                eb.addField("!stop", stop, false);
-                eb.addField("!playlist playlistName", playlistCmd, false);
-                eb.addField("!newPlaylist playlistName", newPlaylist, false);
-                eb.addField("!add playlistName youtube.xx", add, false);
-                eb.addField("!playlistList", listPlaylist, false);
-                eb.addField("!songList playlistName", listSonglist, false);
-                eb.addField("!removePlaylist playlistName", removePlaylist, false);
-                eb.addField("!remove playlistName songTitle", remove, false);
-
-
-
-
-                event.getChannel().sendMessage(eb.build()).queue();
+                musicCommands(command, event);
                 break;
 
             case "!newPlaylist":
-                if (command.length == 2) {
-                    Playlist playlist = new Playlist(command[1], new ArrayList<String>());
-                    musicPlaylist.add(playlist);
-                    event.getChannel().sendMessage("Added " + playlist.getName() + " to playlists").queue();
-
-                    File playlistFolder = new File(System.getProperty("users.dir") + "playlists");
-                    System.out.println("Absolute path the folder: " + playlistFolder.getAbsolutePath());
-
-                    if(playlistFolder.exists() && playlistFolder.isDirectory()){
-                        try{
-                            File newPlaylistFile = new File(playlistFolder.getAbsolutePath() + "/" + command[1] + ".txt");
-                            newPlaylistFile.createNewFile();
-                            System.out.println("Creating new playing to dir: " + newPlaylistFile.getName());
-                        } catch (IOException e){
-                            System.out.println("Error creating file: " + e);
-                        }
-                    }
-
-                } else {
-                    event.getChannel().sendMessage("Syntax error:  !newPlaylist playlistName").queue();
-                }
+                newPlaylist(command, event);
                 break;
 
             case "!removePlaylist":
-                if(command.length == 2){
-                    for(int x = 0; x < musicPlaylist.size(); x ++){
-                        if(command[1].equals(musicPlaylist.get(x).getName())){
-                            musicPlaylist.remove(x);
-
-                            // If found in memory arraylist it must exist as a text file.
-                            File playlistFolder = new File(System.getProperty("users.dir") + "playlists");
-                            File playlistFile = new File(playlistFolder.getAbsolutePath() + "/" + command[1] + ".txt");
-                            playlistFile.delete();
-
-                            if(!playlistFile.exists()) {
-                                event.getChannel().sendMessage("Successfully removed " + command[1]).queue();
-                            }
-                            break;
-                        } else if (x == musicPlaylist.size() -1){
-                            event.getChannel().sendMessage("Playlist doesn't exist: " + command[1]).queue();
-                        }
-                    }
-                } else {  event.getChannel().sendMessage("Syntax error:  !removePlaylist playlistName").queue();}
+               removePlaylist(command, event);
                 break;
 
-            case "!playlistList":
-                EmbedBuilder playEb = new EmbedBuilder();
-                playEb.setColor(Color.RED);
-                playEb.setTitle("Existing playlists: ");
-                String list = "";
-                if(!musicPlaylist.isEmpty()) {
-                    for (Playlist p : musicPlaylist) {
-                        list = list + p.toString() + "\n";
-                    }
-                }
-                playEb.addField("", list, true );
-                event.getChannel().sendMessage(playEb.build()).queue();
+            case "!list":
+                listPlaylists(command, event);
                 break;
 
             case "!songList":
-                String listName = null;
-                ArrayList<String> songlist = null;
-                try
-                {listName = command[1];
-                } catch (ArrayIndexOutOfBoundsException e){
-                    event.getChannel().sendMessage("Syntax error:  !songList playlist").queue();
-                }
-
-                if(listName!=null){
-                    for(int x =0; x<musicPlaylist.size(); x++){
-                        if(musicPlaylist.get(x).getName().equals(listName)){
-                            songlist = musicPlaylist.get(x).getPlaylist();
-                            String s = "";
-                            for(String song : songlist){
-                                s = s + getTitleQuietly(song) + "\n";
-                            }
-                            EmbedBuilder playlistEB = new EmbedBuilder();
-                            playlistEB.setColor(Color.RED);
-                            playlistEB.setTitle(musicPlaylist.get(x).getName() + " songs");
-                            playlistEB.addField("", s, true);
-                            event.getChannel().sendMessage(playlistEB.build()).queue();
-
-                        }
-                    }
-                }
-
+               listSongs(command, event);
                 break;
 
             case "!add":
-                String name = null;
-                String url = null;
-
-                try{
-                     name = command[1];
-                     url = command[2];
-
-                } catch (Exception e){
-                    event.getChannel().sendMessage("Invalid Sytax:  !add playlistName youtube.xx").queue();
-                }
-                // Error check
-                if(name!=null && url !=null && url.contains("youtube")) {
-                    if (name.isEmpty()) {
-                        event.getChannel().sendMessage("Error, please provide a playlist").queue();
-                    } else if (url.isEmpty()) {
-                        event.getChannel().sendMessage("Error, please provide a YouTube URL").queue();
-                    } else {
-
-                        // Add into current memory playlist
-                        for (int x = 0; x < musicPlaylist.size(); x++) {
-                            if (name.equals(musicPlaylist.get(x).getName())) {
-                                musicPlaylist.get(x).addURL(url);
-                                event.getChannel().sendMessage("Adding " + getTitleQuietly(url) + " to " + musicPlaylist.get(x).getName()).queue();
-                                break;
-                            } else if (x == musicPlaylist.size() - 1 && !name.equals(musicPlaylist.get(x).getName())) {
-                                event.getChannel().sendMessage("Cannot add to playlist " + command[1].toString() + ". Playlist does not exist").queue();
-                            }
-                        }
-
-                        // Add into txt file for persistence
-                        try {
-                            File playlistFolder = new File(System.getProperty("users.dir") + "playlists");
-                            File files[] = playlistFolder.listFiles();
-
-                            for(int x = 0; x < files.length; x++){
-                               String fName = files[x].getName();
-                               fName = fName.replace(".txt", "");
-                               if(fName.equals(name)){
-                                   System.out.println("Writing to file: " + name + " with data : " + url);
-                                   FileWriter myWriter = new FileWriter(files[x]);
-                                   myWriter.write(url);
-                                   myWriter.close();
-                                   break;
-                               }
-                            }
-
-                        }catch (IOException e){
-
-                        }
-
-                    }
-                } else {
-                    event.getChannel().sendMessage("Invalid syntax: !add playlistName youtube.xxx").queue();
-                }
-
+               addSongToPlaylist(command, event);
                 break;
 
             case "!remove":
-                if(command.length > 3){
-                    Message message = event.getMessage();
-                    String msgContent = message.getContentRaw();
-                    System.out.println("Command > 3");
-
-                    msgContent = msgContent.replace("!remove ", "");
-                    String[] split = msgContent.split("\\s+");
-
-
-                    if(split.length > 1){
-                        System.out.println("split length > 1");
-                        for(int x = 0; x < musicPlaylist.size(); x ++){
-                                if(split[0].equals(musicPlaylist.get(x).getName())){
-                                    // Remove playlist name from msg content. Can be achieved by calling commands[2]
-                                    // need to redo this section later.
-                                   msgContent = msgContent.replaceAll(split[0]+" ", "");
-                                    boolean ret = musicPlaylist.get(x).removeSongByTitle(msgContent);
-
-                                    // Removing line from txt file
-                                    File playlistFolder = new File(System.getProperty("users.dir") + "playlists");
-                                    File playlistFile = new File(playlistFolder.getAbsolutePath() + "/" + musicPlaylist.get(x).getName() + ".txt");
-
-                                   boolean removed = removeUrlFromFile(playlistFile, msgContent);
-                                    if(removed){ event.getChannel().sendMessage("Removed : " + ret).queue();}
-                                    break;
-                                } else if (x == musicPlaylist.size()-1){
-                                    event.getChannel().sendMessage("Cannot find song").queue();
-                                }
-                        }
-                    }
-                }
+                remove(command, event);
                 break;
 
             case "!resume":
@@ -314,38 +111,7 @@ public class MusicListener extends ListenerAdapter {
                 break;
 
             case "!playlist":
-                String playName = null;
-                try{
-                    playName = command[1];
-                } catch (ArrayIndexOutOfBoundsException e){
-
-                }
-                if(playName == null){
-                    event.getChannel().sendMessage("Specify Playlist.. ").queue();
-                } else {
-                    boolean exists = false;
-                    for(Playlist p : musicPlaylist){
-                        if(p.getName().equals(command[1])) {
-                            ArrayList<String> tracks = p.getPlaylist();
-                            exists = true;
-                            if (tracks.isEmpty()) {
-                                event.getChannel().sendMessage("Playlist url list is empty... ").queue();
-                            } else {
-                                for (String s : tracks) {
-                                    VoiceChannel voiceChannel = event.getMember().getVoiceState().getChannel();
-                                    if (voiceChannel == null) {
-                                        event.getChannel().sendMessage("Join a voice channel before attempting to play.. ").queue();
-                                        break;
-                                    }
-                                    loadAndPlay(event.getChannel(), s, voiceChannel);
-                                }
-                            }
-                        }
-                    }
-                    if(!exists){
-                        event.getChannel().sendMessage("Playlist not found, try again").queue();
-                    }
-                }
+                addPlaylistToQueue(command, event);
                 break;
 
             case "!play":
@@ -361,65 +127,6 @@ public class MusicListener extends ListenerAdapter {
             default:
                 break;
         }
-
-    //    if ("!play".equals(command[0]) && command.length == 2) {
-//            VoiceChannel voiceChannel = event.getMember().getVoiceState().getChannel();
-//            if(voiceChannel == null){event.getChannel().sendMessage("Join a voice channel before attempting to play.. ").queue();
-//            return;
-//            }
-//            loadAndPlay(event.getChannel(), command[1], voiceChannel);
-//        } else if ("!skip".equals(command[0])) {
-//            skipTrack(event.getChannel());
-//        } else if ("!pause".equals(command[0])) {
-//            pause(event.getChannel());
-//        } else if ("!stop".equals(command[0])) {
-//            stop(event.getChannel());
-//        } else if ("!resume".equals(command[0])) {
-//            resume(event.getChannel());
-//        } else if (command[0].contains("!newPlaylist")) {
-//            Message message = event.getMessage();
-//            String content = message.getContentRaw();
-//            String msg = content;
-//            Random random = new Random();
-//
-//            msg = msg.replace("!newPlaylist ", "");
-//            String[] splitString = msg.split("\\s+");
-//            Playlist playlist = new Playlist(command[1], new ArrayList<String>());
-//            musicPlaylist.add(playlist);
-//            event.getChannel().sendMessage("Added " + playlist.getName() + " to playlists");
-//            System.out.println(musicPlaylist.get(0).getName());
-
-
-//        } else if ("!music".equals(command[0])){
-//            EmbedBuilder eb = new EmbedBuilder();
-//            eb.setColor(Color.RED);
-//            eb.setTitle("Music Commands");
-//
-//            String play  ="\n          !play youtube.xxxx - Join voice channel & add music to queue." ;
-//            String skip=  "\n          !skip - Skips current song in queue.";
-//            String pause= "\n          !pause - Pause current song in queue.";
-//            String resume= "\n          !resume - Resume current song in queue.";
-//            String stop = "\n          !stop - Stops current song in queue.";
-//            String cmd = play + skip + pause + resume + stop;
-//            eb.addField("", cmd, true);
-//            event.getChannel().sendMessage(eb.build()).queue();
-
-//        } else if ("!v".equals(command[0])) {
-//            Message msg = event.getMessage();
-//            String content = msg.getContentRaw();
-//            content = content.replace("!volume ","");
-//            TextChannel channel = event.getChannel();
-//            GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
-//
-//            try {
-//                setVolume(musicManagers.get(event.getGuild().getIdLong()), Integer.valueOf(content));
-//            } catch (Exception e) {
-//                event.getChannel().sendMessage("Error, enter valid number");
-//            }
-//            event.getChannel().sendMessage("Volumed changed to: " + content).queue();
-//
-//        }
-
 
             super.onGuildMessageReceived(event);
     }
@@ -443,7 +150,40 @@ public class MusicListener extends ListenerAdapter {
                     firstTrack = playlist.getTracks().get(0);
                 }
 
-                channel.sendMessage("Adding to queue " + firstTrack.getInfo().title + " (first track of playlist " + playlist.getName() + ")").queue();
+                channel.sendMessage("Adding to queue " + firstTrack.getInfo().title + " first track of playlist " + playlist.getName() + ")").queue();
+
+                play(channel.getGuild(), musicManager, firstTrack, vc);
+            }
+
+            @Override
+            public void noMatches() {
+                channel.sendMessage("Nothing found by " + trackUrl).queue();
+            }
+
+            @Override
+            public void loadFailed(FriendlyException exception) {
+                channel.sendMessage("Could not play: " + exception.getMessage()).queue();
+
+            }
+        });
+    }
+
+    private void loadAndPlayQuiet(final TextChannel channel, final String trackUrl, VoiceChannel vc) {
+        GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
+
+        playerManager.loadItemOrdered(musicManager, trackUrl, new AudioLoadResultHandler() {
+            @Override
+            public void trackLoaded(AudioTrack track) {
+                play(channel.getGuild(), musicManager, track, vc);
+            }
+
+            @Override
+            public void playlistLoaded(AudioPlaylist playlist) {
+                AudioTrack firstTrack = playlist.getSelectedTrack();
+
+                if (firstTrack == null) {
+                    firstTrack = playlist.getTracks().get(0);
+                }
 
                 play(channel.getGuild(), musicManager, firstTrack, vc);
             }
@@ -462,7 +202,41 @@ public class MusicListener extends ListenerAdapter {
     }
 
 
+    public void musicCommands(String[] commands, GuildMessageReceivedEvent event){
+        EmbedBuilder eb = new EmbedBuilder();
+        eb.setColor(Color.RED);
+        eb.setTitle("Music Commands");
 
+        String play  ="            Join voice channel & add music to queue. Optional: Specify amount to loop playlist." ;
+        String skip=  "\n          !skip - Skips current song in queue.";
+        String pause= "\n          !pause - Pause current song in queue.";
+        String resume= "\n          !resume - Resume current song in queue.";
+        String stop = "\n          !stop - Stops current song in queue.";
+        String playlistCmd = "\n           Adds all songs in playlist to queue.";
+        String newPlaylist = "\n           Creates a new volatile playlist";
+        String removePlaylist = "\n           Deletes playlist completely";
+        String add = "\n           Adds video to existing playlist";
+        String listPlaylist = "\n           Lists all available playlists";
+        String listSonglist = "\n           Lists all songs in specified playlist";
+        String remove = "\n           Removes songtitle from playlist. " +
+                "List the name exactly as it appears. Use !listSongs cmd to get titles.";
+
+
+        eb.addField("!play youtube.xxxx", play, false);
+        eb.addField("!skip", skip, false);
+        eb.addField("!pause", pause, false);
+        eb.addField("!resume", resume, false);
+        eb.addField("!stop", stop, false);
+        eb.addField("!playlist playlistName || !playlist playlistName int", playlistCmd, false);
+        eb.addField("!newPlaylist playlistName", newPlaylist, false);
+        eb.addField("!add playlistName youtube.xx", add, false);
+        eb.addField("!list", listPlaylist, false);
+        eb.addField("!songList playlistName", listSonglist, false);
+        eb.addField("!removePlaylist playlistName", removePlaylist, false);
+        eb.addField("!remove playlistName songTitle", remove, false);
+
+        event.getChannel().sendMessage(eb.build()).queue();
+    }
 
     private void play(Guild guild, GuildMusicManager musicManager, AudioTrack track, VoiceChannel vc) {
         connectToFirstVoiceChannel(guild.getAudioManager(),vc);
@@ -473,6 +247,21 @@ public class MusicListener extends ListenerAdapter {
 
     private void setVolume(GuildMusicManager musicManager, int volume){
         musicManager.player.setVolume(volume);
+    }
+
+    public void setVolumeCommand(String[] command, GuildMessageReceivedEvent event){
+        if(command.length == 2){
+            TextChannel channel = event.getChannel();
+            GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
+            try {
+                setVolume(musicManagers.get(event.getGuild().getIdLong()), Integer.valueOf(command[1]));
+            } catch (Exception e) {
+                event.getChannel().sendMessage("Error, enter valid number");
+            }
+            event.getChannel().sendMessage("Volumed changed to: " + command[1]).queue();
+        } else {
+            event.getChannel().sendMessage("Invalid syntax: !volume integer");
+        }
     }
 
     private void stop(TextChannel channel){
@@ -527,6 +316,275 @@ public class MusicListener extends ListenerAdapter {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public void newPlaylist(String[] command, GuildMessageReceivedEvent event){
+        if (command.length == 2) {
+            Playlist playlist = new Playlist(command[1], new ArrayList<String>());
+            musicPlaylist.add(playlist);
+            event.getChannel().sendMessage("Added " + playlist.getName() + " to playlists").queue();
+
+            File playlistFolder = new File(System.getProperty("users.dir") + "playlists");
+
+            if(playlistFolder.exists() && playlistFolder.isDirectory()){
+                try{
+                    File newPlaylistFile = new File(playlistFolder.getAbsolutePath() + "/" + command[1] + ".txt");
+                    newPlaylistFile.createNewFile();
+                    System.out.println("Creating new playing to dir: " + newPlaylistFile.getName());
+                } catch (IOException e){
+                    System.out.println("Error creating file: " + e);
+                }
+            }
+
+        } else {
+            event.getChannel().sendMessage("Syntax error:  !newPlaylist playlistName").queue();
+        }
+    }
+
+    public void removePlaylist(String[] command, GuildMessageReceivedEvent event){
+        if(command.length == 2){
+            for(int x = 0; x < musicPlaylist.size(); x ++){
+                if(command[1].equals(musicPlaylist.get(x).getName())){
+                    musicPlaylist.remove(x);
+
+                    // If found in memory arraylist it must exist as a text file.
+                    File playlistFolder = new File(System.getProperty("users.dir") + "playlists");
+                    File playlistFile = new File(playlistFolder.getAbsolutePath() + "/" + command[1] + ".txt");
+                    playlistFile.delete();
+
+                    if(!playlistFile.exists()) {
+                        event.getChannel().sendMessage("Successfully removed " + command[1]).queue();
+                    }
+                    break;
+                } else if (x == musicPlaylist.size() -1){
+                    event.getChannel().sendMessage("Playlist doesn't exist: " + command[1]).queue();
+                }
+            }
+        } else {  event.getChannel().sendMessage("Syntax error:  !removePlaylist playlistName").queue();}
+    }
+
+    public void listSongs(String[] command, GuildMessageReceivedEvent event) {
+        String listName = null;
+        ArrayList<String> songlist = null;
+        try
+        {listName = command[1];
+        } catch (ArrayIndexOutOfBoundsException e){
+            event.getChannel().sendMessage("Syntax error:  !songList playlist").queue();
+        }
+
+        if(listName!=null){
+            for(int x =0; x<musicPlaylist.size(); x++){
+                if(musicPlaylist.get(x).getName().equals(listName)){
+                    songlist = musicPlaylist.get(x).getPlaylist();
+                    String s = "";
+                    for(String song : songlist){
+                        s = s + getTitleQuietly(song) + "\n";
+                    }
+                    EmbedBuilder playlistEB = new EmbedBuilder();
+                    playlistEB.setColor(Color.RED);
+                    playlistEB.setTitle(musicPlaylist.get(x).getName() + " songs");
+                    playlistEB.addField("", s, true);
+                    event.getChannel().sendMessage(playlistEB.build()).queue();
+
+                }
+            }
+        }
+    }
+
+    public void listPlaylists(String[] command, GuildMessageReceivedEvent event) {
+        EmbedBuilder playEb = new EmbedBuilder();
+        playEb.setColor(Color.RED);
+        playEb.setTitle("Existing playlists: ");
+        String list = "";
+        if(!musicPlaylist.isEmpty()) {
+            for (Playlist p : musicPlaylist) {
+                list = list + p.toString() + "\n";
+            }
+        }
+        playEb.addField("", list, true );
+        event.getChannel().sendMessage(playEb.build()).queue();
+    }
+
+    public void addSongToPlaylist(String[] command, GuildMessageReceivedEvent event){
+        String name = null;
+        String url = null;
+
+        try{
+            name = command[1];
+            url = command[2];
+
+        } catch (Exception e){
+            event.getChannel().sendMessage("Invalid Sytax:  !add playlistName youtube.xx").queue();
+        }
+        // Error check
+        if(name!=null && url !=null && url.contains("youtube")) {
+            if (name.isEmpty()) {
+                event.getChannel().sendMessage("Error, please provide a playlist").queue();
+            } else if (url.isEmpty()) {
+                event.getChannel().sendMessage("Error, please provide a YouTube URL").queue();
+            } else {
+
+                // Add into current memory playlist
+                for (int x = 0; x < musicPlaylist.size(); x++) {
+                    if (name.equals(musicPlaylist.get(x).getName())) {
+                        musicPlaylist.get(x).addURL(url);
+                        event.getChannel().sendMessage("Adding " + getTitleQuietly(url) + " to " + musicPlaylist.get(x).getName()).queue();
+                        break;
+                    } else if (x == musicPlaylist.size() - 1 && !name.equals(musicPlaylist.get(x).getName())) {
+                        event.getChannel().sendMessage("Cannot add to playlist " + command[1].toString() + ". Playlist does not exist").queue();
+                    }
+                }
+
+                // Add into txt file for persistence
+                try {
+                    File playlistFolder = new File(System.getProperty("users.dir") + "playlists");
+                    File files[] = playlistFolder.listFiles();
+
+                    for(int x = 0; x < files.length; x++){
+                        String fName = files[x].getName();
+                        fName = fName.replace(".txt", "");
+                        if(fName.equals(name)){
+                            System.out.println("Writing to file: " + name + " with data : " + url);
+                            FileWriter myWriter = new FileWriter(files[x]);
+                            myWriter.write(url);
+                            myWriter.close();
+                            break;
+                        }
+                    }
+
+                }catch (IOException e){
+
+                }
+
+            }
+        } else {
+            event.getChannel().sendMessage("Invalid syntax: !add playlistName youtube.xxx").queue();
+        }
+    }
+
+    public void remove(String[] command, GuildMessageReceivedEvent event){
+        if(command.length > 3 ){
+            Message message = event.getMessage();
+            String msgContent = message.getContentRaw();
+            System.out.println("Command > 3");
+
+            msgContent = msgContent.replace("!remove ", "");
+            String[] split = msgContent.split("\\s+");
+
+
+            if(split.length > 1){
+                System.out.println("split length > 1");
+                for(int x = 0; x < musicPlaylist.size(); x ++){
+
+                    if(split[0].equals(musicPlaylist.get(x).getName())){
+                        // Remove playlist name from msg content. Can be achieved by calling commands[2]
+                        // need to redo this section later.
+                        msgContent = msgContent.replaceAll(split[0]+" ", "");
+                        boolean ret = musicPlaylist.get(x).removeSongByTitle(msgContent);
+
+                        // Removing line from txt file
+                        File playlistFolder = new File(System.getProperty("users.dir") + "playlists");
+                        File playlistFile = new File(playlistFolder.getAbsolutePath() + "/" + musicPlaylist.get(x).getName() + ".txt");
+
+                        boolean removed = removeUrlFromFile(playlistFile, msgContent);
+                        if(removed){ event.getChannel().sendMessage("Removed : " + ret).queue();}
+                        break;
+                    } else if (x == musicPlaylist.size()-1){
+                        event.getChannel().sendMessage("Cannot find song").queue();
+                    }
+                }
+            }
+        } else {
+            event.getChannel().sendMessage("Invalid syntax: !remove playListName SongTitle");
+        }
+    }
+
+    public void addPlaylistToQueue(String[] command, GuildMessageReceivedEvent event){
+        // If loading playlist once
+        if(command.length == 2) {
+            String playName = null;
+            try {
+                playName = command[1];
+            } catch (ArrayIndexOutOfBoundsException e) {
+
+            }
+            if (playName == null) {
+                event.getChannel().sendMessage("Specify Playlist.. ").queue();
+            } else {
+                boolean exists = false;
+                for (Playlist p : musicPlaylist) {
+                    if (p.getName().equals(command[1])) {
+                        ArrayList<String> tracks = p.getPlaylist();
+                        exists = true;
+                        if (tracks.isEmpty()) {
+                            event.getChannel().sendMessage("Playlist url list is empty... ").queue();
+                        } else {
+                            for (String s : tracks) {
+                                VoiceChannel voiceChannel = event.getMember().getVoiceState().getChannel();
+                                if (voiceChannel == null) {
+                                    event.getChannel().sendMessage("Join a voice channel before attempting to play.. ").queue();
+                                    break;
+                                }
+                                loadAndPlayQuiet(event.getChannel(), s, voiceChannel);
+                            }
+                        }
+                    }
+                }
+                if (!exists) {
+                    event.getChannel().sendMessage("Playlist not found, try again").queue();
+                }
+            }
+            // if attempting to load playlist X times to loop.
+        } else if(command.length == 3){
+
+            String playName = null;
+            int repeat = 0;
+            try{
+                repeat = Integer.parseInt(command[2]);
+            } catch (Exception e){
+                event.getChannel().sendMessage("Syntax error: Enter valid number, e.g !playlist playListName 4");
+            }
+            try {
+                playName = command[1];
+            } catch (ArrayIndexOutOfBoundsException e) {
+
+            }
+            if (playName == null || repeat == 0) {
+                event.getChannel().sendMessage("Syntax error: !playlist playlistName int").queue();
+            } else {
+                boolean exists = false;
+
+                for (Playlist p : musicPlaylist) {
+                    if (p.getName().equals(command[1])) {
+                        ArrayList<String> tracks = p.getPlaylist();
+                        exists = true;
+                        if (tracks.isEmpty()) {
+                            event.getChannel().sendMessage("Playlist url list is empty... ").queue();
+                        } else {
+                            for (String s : tracks) {
+                                VoiceChannel voiceChannel = event.getMember().getVoiceState().getChannel();
+                                if (voiceChannel == null) {
+                                    event.getChannel().sendMessage("Join a voice channel before attempting to play.. ").queue();
+                                    break;
+                                }
+                                for(int x = 0; x < repeat; x++) {
+                                    loadAndPlayQuiet(event.getChannel(), s, voiceChannel);
+                                }
+                            }
+                            event.getChannel().sendMessage("Loading " + playName + " " + repeat + " times").queue();
+                        }
+                    }
+                }
+                if (!exists) {
+                    event.getChannel().sendMessage("Playlist not found, try again").queue();
+                }
+            }
+        }
+
+    }
+
+    public int getQueueSize(GuildMusicManager manager){
+        return manager.scheduler.getCapacity();
     }
 
     public boolean removeUrlFromFile(File playlist, String title){

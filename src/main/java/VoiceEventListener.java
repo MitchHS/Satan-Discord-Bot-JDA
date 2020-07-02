@@ -224,7 +224,4 @@ public class VoiceEventListener extends ListenerAdapter {
             }
         } else {System.out.println("Add valid user");}
     }
-
-
-
 }

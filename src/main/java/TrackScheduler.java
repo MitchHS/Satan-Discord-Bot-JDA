@@ -34,6 +34,7 @@ public class TrackScheduler extends AudioEventAdapter {
     // track goes to the queue instead.
     if (!player.startTrack(track, true)) {
       queue.offer(track);
+
     }
   }
 
@@ -52,7 +53,9 @@ public class TrackScheduler extends AudioEventAdapter {
     if (endReason.mayStartNext) {
       nextTrack();
     }
+  }
 
-
+  public int getCapacity(){
+    return queue.remainingCapacity();
   }
 }

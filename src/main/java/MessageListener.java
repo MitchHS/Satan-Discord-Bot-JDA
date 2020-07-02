@@ -38,7 +38,6 @@ public class MessageListener extends ListenerAdapter
             Member member = event.getMember();
             String name = member.getUser().getId();
             TextChannel textChannel = event.getTextChannel();
-//            defaultText.sendMessage("U fucking wot " +"<@" + name).
             textChannel.sendMessage("U fucking wot " +"<@" + name+">").addFile(new File("/home/pi/satanBot/watchu.gif")).queue();
         }
 
@@ -93,8 +92,5 @@ public class MessageListener extends ListenerAdapter
             }
         }
     }
-
-
-
 
 }
