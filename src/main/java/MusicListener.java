@@ -445,7 +445,7 @@ public class MusicListener extends ListenerAdapter {
                         fName = fName.replace(".txt", "");
                         if(fName.equals(name)){
                             System.out.println("Writing to file: " + name + " with data : " + url);
-                            FileWriter myWriter = new FileWriter(files[x]);
+                            FileWriter myWriter = new FileWriter(files[x], true);
                             myWriter.write(url);
                             myWriter.close();
                             break;
