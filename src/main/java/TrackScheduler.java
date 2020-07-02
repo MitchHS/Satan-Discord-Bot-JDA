@@ -4,7 +4,10 @@ import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
+import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -34,7 +37,6 @@ public class TrackScheduler extends AudioEventAdapter {
     // track goes to the queue instead.
     if (!player.startTrack(track, true)) {
       queue.offer(track);
-
     }
   }
 
@@ -55,7 +57,40 @@ public class TrackScheduler extends AudioEventAdapter {
     }
   }
 
-  public int getCapacity(){
-    return queue.remainingCapacity();
+  public int getSize(){
+    return queue.size();
+  }
+
+  public ArrayList<String> getList() {
+    ArrayList<String> titles = new ArrayList<>();
+    Iterator iter = this.queue.iterator();
+    while (iter.hasNext()){
+      for(int x = 0; x< this.queue.size(); x++){
+        AudioTrack obj = (AudioTrack) iter.next();
+        AudioTrackInfo info = (AudioTrackInfo) obj.getInfo();
+        titles.add(info.title);
+      }
+    }
+    return titles;
+
+   // this.queue.stream.map(AudioTrack::getInfo).map(AudioTrackInfo::title).collect();
+
+  }
+
+  public void purge() {
+    Iterator iter = this.queue.iterator();
+    this.player.stopTrack();
+    this.queue.clear();
+
+  }
+
+  public void setLoop(ArrayList<String> playlist, boolean bool){
+
+  }
+
+  @Override
+  public void onTrackStart(AudioPlayer player, AudioTrack track) {
+    super.onTrackStart(player, track);
+
   }
 }

@@ -1,4 +1,3 @@
-import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
@@ -16,10 +15,8 @@ import org.apache.commons.io.IOUtils;
 import java.awt.*;
 import java.io.*;
 import java.net.URL;
-import java.nio.channels.Channel;
 import java.util.*;
-import java.net.URL;
-import org.apache.commons.io.IOUtils;
+
 import org.json.JSONObject;
 
 
@@ -124,6 +121,21 @@ public class MusicListener extends ListenerAdapter {
           }
                 break;
 
+            case "!queue":
+               getQueueTitles(event);
+                break;
+
+            case "!purge":
+                try {
+                    musicManagers.get(event.getGuild().getIdLong()).scheduler.purge();
+                    event.getChannel().sendMessage("Purged the entire queue").queue();
+                } catch (NullPointerException e){
+                    event.getChannel().sendMessage("Queue list is empty").queue();
+                }
+
+                break;
+
+
             default:
                 break;
         }
@@ -199,6 +211,7 @@ public class MusicListener extends ListenerAdapter {
 
             }
         });
+
     }
 
 
@@ -207,26 +220,30 @@ public class MusicListener extends ListenerAdapter {
         eb.setColor(Color.RED);
         eb.setTitle("Music Commands");
 
+        String queue = "\n          Prints list of all songs in queue";
         String play  ="            Join voice channel & add music to queue. Optional: Specify amount to loop playlist." ;
-        String skip=  "\n          !skip - Skips current song in queue.";
-        String pause= "\n          !pause - Pause current song in queue.";
-        String resume= "\n          !resume - Resume current song in queue.";
-        String stop = "\n          !stop - Stops current song in queue.";
+        String skip=  "\n          Skips current song in queue.";
+        String pause= "\n          Pause current song in queue.";
+        String resume= "\n          Resume current song in queue.";
+        String stop = "\n          Stops current song in queue.";
+        String purge = "\n          Purges all songs from current queue.";
         String playlistCmd = "\n           Adds all songs in playlist to queue.";
-        String newPlaylist = "\n           Creates a new volatile playlist";
-        String removePlaylist = "\n           Deletes playlist completely";
-        String add = "\n           Adds video to existing playlist";
-        String listPlaylist = "\n           Lists all available playlists";
-        String listSonglist = "\n           Lists all songs in specified playlist";
+        String newPlaylist = "\n           Creates a new volatile playlist.";
+        String removePlaylist = "\n           Deletes playlist completely.";
+        String add = "\n           Adds video to existing playlist.";
+        String listPlaylist = "\n           Lists all available playlists.";
+        String listSonglist = "\n           Lists all songs in specified playlist.";
         String remove = "\n           Removes songtitle from playlist. " +
                 "List the name exactly as it appears. Use !listSongs cmd to get titles.";
 
 
+        eb.addField("!queue", queue, false);
         eb.addField("!play youtube.xxxx", play, false);
         eb.addField("!skip", skip, false);
         eb.addField("!pause", pause, false);
         eb.addField("!resume", resume, false);
         eb.addField("!stop", stop, false);
+        eb.addField("!purge", purge, false);
         eb.addField("!playlist playlistName || !playlist playlistName int", playlistCmd, false);
         eb.addField("!newPlaylist playlistName", newPlaylist, false);
         eb.addField("!add playlistName youtube.xx", add, false);
@@ -242,6 +259,30 @@ public class MusicListener extends ListenerAdapter {
         connectToFirstVoiceChannel(guild.getAudioManager(),vc);
 
         musicManager.scheduler.queue(track);
+
+    }
+
+    public void getQueueTitles(GuildMessageReceivedEvent event) {
+        try {
+            int size = musicManagers.get(event.getGuild().getIdLong()).scheduler.getSize();
+            ArrayList<String> titles = musicManagers.get(event.getGuild().getIdLong()).scheduler.getList();
+            String tmp = "";
+            if(size > 0 && titles.size() > 0 ){
+                for(String song : titles){
+                    tmp = tmp + song + "\n";
+                }
+
+                EmbedBuilder playlistEB = new EmbedBuilder();
+                playlistEB.setColor(Color.RED);
+                playlistEB.setTitle("Songs in current queue");
+                playlistEB.addField("", tmp, true);
+                event.getChannel().sendMessage(playlistEB.build()).queue();
+            } else {
+                event.getChannel().sendMessage("No songs in current queue").queue();
+            }
+        } catch (Exception e){
+            event.getChannel().sendMessage("No songs in current queue").queue();
+        }
 
     }
 
@@ -386,6 +427,10 @@ public class MusicListener extends ListenerAdapter {
                     playlistEB.addField("", s, true);
                     event.getChannel().sendMessage(playlistEB.build()).queue();
 
+                } else {
+                    if( x == musicPlaylist.size()-1 && !musicPlaylist.get(x).getName().equals(listName)){
+                        event.getChannel().sendMessage("Playlist does not exist").queue();
+                    }
                 }
             }
         }
@@ -443,11 +488,21 @@ public class MusicListener extends ListenerAdapter {
                     for(int x = 0; x < files.length; x++){
                         String fName = files[x].getName();
                         fName = fName.replace(".txt", "");
+
                         if(fName.equals(name)){
-                            System.out.println("Writing to file: " + name + " with data : " + url);
-                            FileWriter myWriter = new FileWriter(files[x], true);
-                            myWriter.write(url);
-                            myWriter.close();
+                            if(files[x].length() < 1) {
+                                System.out.println("Writing to file: " + name + " with data : " + url);
+                                FileWriter myWriter = new FileWriter(files[x], true);
+                                myWriter.write(url);
+
+                                myWriter.close();
+                            } else {
+                                System.out.println("Writing to file: " + name + " with data : " + url);
+                                FileWriter myWriter = new FileWriter(files[x], true);
+                                myWriter.write("\n" + url);
+
+                                myWriter.close();
+                            }
                             break;
                         }
                     }
@@ -584,7 +639,7 @@ public class MusicListener extends ListenerAdapter {
     }
 
     public int getQueueSize(GuildMusicManager manager){
-        return manager.scheduler.getCapacity();
+        return manager.scheduler.getSize();
     }
 
     public boolean removeUrlFromFile(File playlist, String title){

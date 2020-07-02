@@ -10,7 +10,7 @@ public class GuildMusicManager {
   /**
    * Audio player for the guild.
    */
-  public final AudioPlayer player;
+  public  AudioPlayer player;
   /**
    * Track scheduler for the player.
    */
@@ -30,6 +30,8 @@ public class GuildMusicManager {
    * @return Wrapper around AudioPlayer to use it as an AudioSendHandler.
    */
   public AudioSendHandler getSendHandler() {
+    player.stopTrack();
     return new AudioPlayerSendHandler(player);
   }
+
 }
