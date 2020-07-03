@@ -388,7 +388,6 @@ public class MusicListener extends ListenerAdapter {
                 URL embededURL = new URL("http://www.youtube.com/oembed?url=" +
                         youtubeUrl + "&format=json"
                 );
-
                 return new JSONObject(IOUtils.toString(embededURL)).getString("title");
             }
 
@@ -453,18 +452,33 @@ public class MusicListener extends ListenerAdapter {
         }
 
         if(listName!=null){
+            EmbedBuilder playlistEB = new EmbedBuilder();
+            playlistEB.setColor(Color.RED);
             for(int x =0; x<musicPlaylist.size(); x++){
                 if(musicPlaylist.get(x).getName().equals(listName)){
                     songlist = musicPlaylist.get(x).getPlaylist();
                     String s = "";
                     for(String song : songlist){
-                        s = s + getTitleQuietly(song) + "\n";
+                        if(s.length() >= 1000){
+                            playlistEB.addField("", s, false);
+                            s = "";
+                        } else {
+                            String tmp = getTitleQuietly(song) + "\n";
+                            if(tmp!=null){
+                                s = s + tmp;
+                            } else {
+
+                            }
+
+                        }
+
                     }
-                    EmbedBuilder playlistEB = new EmbedBuilder();
-                    playlistEB.setColor(Color.RED);
+//                    EmbedBuilder playlistEB = new EmbedBuilder();
+//                    playlistEB.setColor(Color.RED);
                     playlistEB.setTitle(musicPlaylist.get(x).getName() + " songs");
-                    playlistEB.addField("", s, true);
+                    playlistEB.addField("", s, false);
                     event.getChannel().sendMessage(playlistEB.build()).queue();
+                    break;
 
                 } else {
                     if( x == musicPlaylist.size()-1 && !musicPlaylist.get(x).getName().equals(listName)){
@@ -754,10 +768,12 @@ public class MusicListener extends ListenerAdapter {
     class Playlist {
         String name;
         ArrayList<String> urlList;
+        ArrayList<String> title;
 
         public Playlist(String name, ArrayList<String> urlList){
             this.name = name;
             this.urlList = urlList;
+
         }
 
         public String getName() {
