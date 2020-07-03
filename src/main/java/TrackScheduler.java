@@ -78,7 +78,6 @@ public class TrackScheduler extends AudioEventAdapter {
   }
 
   public void purge() {
-    Iterator iter = this.queue.iterator();
     this.player.stopTrack();
     this.queue.clear();
 
