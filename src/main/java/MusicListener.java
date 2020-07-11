@@ -250,6 +250,7 @@ public class MusicListener extends ListenerAdapter {
         String listSonglist = "\n           Lists all songs in specified playlist.";
         String remove = "\n           Removes songtitle from playlist. " +
                 "List the name exactly as it appears. Use !listSongs cmd to get titles.";
+        String shuffle = "\n          Shuffles playlist and adds to queue";
 
 
         eb.addField("!queue", queue, false);
@@ -259,11 +260,12 @@ public class MusicListener extends ListenerAdapter {
         eb.addField("!resume", resume, false);
         eb.addField("!stop", stop, false);
         eb.addField("!purge", purge, false);
+        eb.addField("!list", listPlaylist, false);
         eb.addField("!playlist playlistName || !playlist playlistName int", playlistCmd, false);
         eb.addField("!newPlaylist playlistName", newPlaylist, false);
         eb.addField("!add playlistName youtube.xx", add, false);
-        eb.addField("!list", listPlaylist, false);
         eb.addField("!songList playlistName", listSonglist, false);
+        eb.addField("!shuffle playlistName", shuffle, false);
         eb.addField("!removePlaylist playlistName", removePlaylist, false);
         eb.addField("!remove playlistName songTitle", remove, false);
 
@@ -377,7 +379,6 @@ public class MusicListener extends ListenerAdapter {
          copy.remove(rand);
         }
 
-        System.out.println("Copy playlist size: " + copy.size());
         System.out.println("new Order : " + shuffled.toString());
         VoiceChannel voiceChannel = event.getMember().getVoiceState().getChannel();
 
@@ -770,24 +771,23 @@ public class MusicListener extends ListenerAdapter {
         Thread t = new Thread(() -> {
             String workingDir = System.getProperty("user.dir");
             File playlists = new File(System.getProperty("users.dir") + "playlists");
-
             if(playlists.exists() && playlists.isDirectory()){
                 System.out.println("Environment existing - Ready..");
                 File[] listFiles = playlists.listFiles();
-
                 if(listFiles.length <=0){
                     System.out.println("No playlists to read.");
                 } else {
                     for(int x = 0; x < listFiles.length; x++){
                         try {
                             ArrayList<String> urlList = new ArrayList<>();
+                            ArrayList<String> titleList = new ArrayList<>();
                             Scanner myReader = new Scanner(listFiles[x]);
                             while (myReader.hasNextLine()){
                                 String url = myReader.nextLine();
                                 urlList.add(url);
+                                titleList.add(getTitleQuietly(url));
                             }
-                            musicPlaylist.add(new Playlist(listFiles[x].getName().replace(".txt", ""), urlList));
-                            System.out.println("Loaded playlist: " + listFiles[x].getName());
+                            musicPlaylist.add(new Playlist(listFiles[x].getName().replace(".txt", ""), urlList, titleList));
                             myReader.close();
                         }catch (FileNotFoundException e){
 
