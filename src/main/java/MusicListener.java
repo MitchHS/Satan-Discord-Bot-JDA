@@ -673,7 +673,7 @@ public class MusicListener extends ListenerAdapter {
                 }
                 if(hasLoaded){
                     event.getChannel().sendMessage("Playlist " + playName + " added to queue").queue();
-                } 
+                }
                 if (!exists) {
                     event.getChannel().sendMessage("Playlist not found, try again").queue();
                 }
@@ -767,46 +767,44 @@ public class MusicListener extends ListenerAdapter {
 
     // init Directories for playlists, read existing playlists.
     public Thread init(){
-        Thread t = new Thread(){
-            public void run() {
-                String workingDir = System.getProperty("user.dir");
-                File playlists = new File(System.getProperty("users.dir") + "playlists");
+        Thread t = new Thread(() -> {
+            String workingDir = System.getProperty("user.dir");
+            File playlists = new File(System.getProperty("users.dir") + "playlists");
 
-                if(playlists.exists() && playlists.isDirectory()){
-                    System.out.println("Environment existing - Ready..");
-                    File[] listFiles = playlists.listFiles();
+            if(playlists.exists() && playlists.isDirectory()){
+                System.out.println("Environment existing - Ready..");
+                File[] listFiles = playlists.listFiles();
 
-                    if(listFiles.length <=0){
-                        System.out.println("No playlists to read.");
-                    } else {
-                        for(int x = 0; x < listFiles.length; x++){
-                            try {
-                                ArrayList<String> urlList = new ArrayList<>();
-                                Scanner myReader = new Scanner(listFiles[x]);
-                                while (myReader.hasNextLine()){
-                                    String url = myReader.nextLine();
-                                    urlList.add(url);
-                                }
-                                musicPlaylist.add(new Playlist(listFiles[x].getName().replace(".txt", ""), urlList));
-                                System.out.println("Loaded playlist: " + listFiles[x].getName());
-                                myReader.close();
-                            }catch (FileNotFoundException e){
-
+                if(listFiles.length <=0){
+                    System.out.println("No playlists to read.");
+                } else {
+                    for(int x = 0; x < listFiles.length; x++){
+                        try {
+                            ArrayList<String> urlList = new ArrayList<>();
+                            Scanner myReader = new Scanner(listFiles[x]);
+                            while (myReader.hasNextLine()){
+                                String url = myReader.nextLine();
+                                urlList.add(url);
                             }
+                            musicPlaylist.add(new Playlist(listFiles[x].getName().replace(".txt", ""), urlList));
+                            System.out.println("Loaded playlist: " + listFiles[x].getName());
+                            myReader.close();
+                        }catch (FileNotFoundException e){
+
                         }
                     }
-                } else {
-                    System.out.println("Creating environment directories..");
-                    playlists.mkdir();
-                    System.out.println("Complete: " + playlists.exists());
                 }
-
-                for(Playlist p : musicPlaylist){
-                    System.out.println("Playlist in memory: " + p.getName());
-
-                }
+            } else {
+                System.out.println("Creating environment directories..");
+                playlists.mkdir();
+                System.out.println("Complete: " + playlists.exists());
             }
-            } ;
+
+            for(Playlist p : musicPlaylist){
+                System.out.println("Playlist in memory: " + p.getName());
+
+            }
+        });
         return  t;
         }
 
