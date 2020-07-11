@@ -37,6 +37,14 @@ public class Main extends ListenerAdapter {
         MessageListener messageListener = new MessageListener();
         ServerConnectionListener serverConnectionListener = new ServerConnectionListener();
 
+        Thread t = musicListener.init();
+        t.start();
+        try {
+            t.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         Scanner in = new Scanner(System.in);
         jda = new JDABuilder(token).build();
                     jda.addEventListener(voiceEventListener);
@@ -46,7 +54,7 @@ public class Main extends ListenerAdapter {
 
 
         System.out.println("Connected to server");
-        musicListener.init();
+
 
 //        do {
 //            System.out.print("\n -- SATAN DISCORD BOT -- \n");

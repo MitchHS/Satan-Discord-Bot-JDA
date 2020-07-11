@@ -20,6 +20,6 @@ public class ServerConnectionListener extends ListenerAdapter {
 
 
         //defaultText.sendMessage("U fucking wot " +"@\" + name").addFile(new File("C:/Users/Mitchell/Downloads/watchu.gif")).queue();
-        defaultText.sendMessage("U fucking wot " +"<@" + name+">").addFile(new File("/home/pi/watchu.gif")).queue();
+        defaultText.sendMessage("U fucking wot " +"<@" + name+">").addFile(new File("/home/pi/satanBot/watchu.gif")).queue();
     }
 }

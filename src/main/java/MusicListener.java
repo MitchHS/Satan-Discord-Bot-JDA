@@ -115,9 +115,10 @@ public class MusicListener extends ListenerAdapter {
                 if (command.length == 2) {
             VoiceChannel voiceChannel = event.getMember().getVoiceState().getChannel();
             if(voiceChannel == null){event.getChannel().sendMessage("Join a voice channel before attempting to play.. ").queue();
-               return;
+
+            } else {
+                loadAndPlay(event.getChannel(), command[1], voiceChannel);
             }
-            loadAndPlay(event.getChannel(), command[1], voiceChannel);
           }
                 break;
 
@@ -398,6 +399,7 @@ public class MusicListener extends ListenerAdapter {
         return null;
     }
 
+
     public void newPlaylist(String[] command, GuildMessageReceivedEvent event){
         if (command.length == 2) {
             Playlist playlist = new Playlist(command[1], new ArrayList<String>());
@@ -421,6 +423,7 @@ public class MusicListener extends ListenerAdapter {
         }
     }
 
+
     public void removePlaylist(String[] command, GuildMessageReceivedEvent event){
         if(command.length == 2){
             for(int x = 0; x < musicPlaylist.size(); x ++){
@@ -442,6 +445,7 @@ public class MusicListener extends ListenerAdapter {
             }
         } else {  event.getChannel().sendMessage("Syntax error:  !removePlaylist playlistName").queue();}
     }
+
 
     public void listSongs(String[] command, GuildMessageReceivedEvent event) {
         String listName = null;
@@ -606,6 +610,7 @@ public class MusicListener extends ListenerAdapter {
                 event.getChannel().sendMessage("Specify Playlist.. ").queue();
             } else {
                 boolean exists = false;
+                boolean hasLoaded = false;
                 for (Playlist p : musicPlaylist) {
                     if (p.getName().equals(command[1])) {
                         ArrayList<String> tracks = p.getPlaylist();
@@ -620,10 +625,14 @@ public class MusicListener extends ListenerAdapter {
                                     break;
                                 }
                                 loadAndPlayQuiet(event.getChannel(), s, voiceChannel);
+                                hasLoaded = true;
                             }
                         }
                     }
                 }
+                if(hasLoaded){
+                    event.getChannel().sendMessage("Playlist " + playName + " added to queue").queue();
+                } 
                 if (!exists) {
                     event.getChannel().sendMessage("Playlist not found, try again").queue();
                 }
@@ -716,39 +725,53 @@ public class MusicListener extends ListenerAdapter {
     }
 
     // init Directories for playlists, read existing playlists.
-    public void init(){
-        String workingDir = System.getProperty("user.dir");
-        File playlists = new File(System.getProperty("users.dir") + "playlists");
+    public Thread init(){
+        Thread t = new Thread(){
+            public void run() {
+                String workingDir = System.getProperty("user.dir");
+                File playlists = new File(System.getProperty("users.dir") + "playlists");
+
+                if(playlists.exists() && playlists.isDirectory()){
+                    System.out.println("Environment existing - Ready..");
+                    File[] listFiles = playlists.listFiles();
+
+                    if(listFiles.length <=0){
+                        System.out.println("No playlists to read.");
+                    } else {
+                        for(int x = 0; x < listFiles.length; x++){
+                            try {
+                                ArrayList<String> urlList = new ArrayList<>();
+                                Scanner myReader = new Scanner(listFiles[x]);
+                                while (myReader.hasNextLine()){
+                                    String url = myReader.nextLine();
+                                    urlList.add(url);
+                                }
+                                musicPlaylist.add(new Playlist(listFiles[x].getName().replace(".txt", ""), urlList));
+                                System.out.println("Loaded playlist: " + listFiles[x].getName());
+                                myReader.close();
+                            }catch (FileNotFoundException e){
+
+                            }
+                        }
+                    }
+                } else {
+                    System.out.println("Creating environment directories..");
+                    playlists.mkdir();
+                    System.out.println("Complete: " + playlists.exists());
+                }
+
+                for(Playlist p : musicPlaylist){
+                    System.out.println("Playlist in memory: " + p.getName());
+
+                }
+            }
+            } ;
+        return  t;
+        }
 
 
-       if(playlists.exists() && playlists.isDirectory()){
-           System.out.println("Environment existing - Ready..");
-           File[] listFiles = playlists.listFiles();
 
-           if(listFiles.length <=0){
-               System.out.println("No playlists to read.");
-           } else {
-               for(int x = 0; x < listFiles.length; x++){
-                  try {
-                      ArrayList<String> urlList = new ArrayList<>();
-                      Scanner myReader = new Scanner(listFiles[x]);
-                      while (myReader.hasNextLine()){
-                          String url = myReader.nextLine();
-                          urlList.add(url);
-                      }
-                      musicPlaylist.add(new Playlist(listFiles[x].getName().replace(".txt", ""), urlList));
-                      myReader.close();
-                  }catch (FileNotFoundException e){
 
-                  }
-               }
-           }
-       } else {
-           System.out.println("Creating environment directories..");
-           playlists.mkdir();
-           System.out.println("Complete: " + playlists.exists());
-       }
-    }
 
     // Inner class for game type playlists. Arraylist gets populated from text files.
     class Playlist {
@@ -774,12 +797,11 @@ public class MusicListener extends ListenerAdapter {
 
         public boolean removeSongByTitle(String title){
             boolean isTrue = false;
-            System.out.println("PASSED ARG:" + title);
+
             for(int x = 0; x < urlList.size(); x ++){
-                System.out.println("Retrieved TITLE URL:" + getTitleQuietly(urlList.get(x)));
                 if(getTitleQuietly(urlList.get(x)).equals(title)){
                     urlList.remove(x);
-                    System.out.println("MATCHED TITLES");
+                    System.out.println("MATCHED TITLE");
                     isTrue = true;
                 } else if(x == urlList.size()){
                     isTrue = false;

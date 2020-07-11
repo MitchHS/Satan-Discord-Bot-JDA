@@ -35,6 +35,7 @@ public class TrackScheduler extends AudioEventAdapter {
     // Calling startTrack with the noInterrupt set to true will start the track only if nothing is currently playing. If
     // something is playing, it returns false and does nothing. In that case the player was already playing so this
     // track goes to the queue instead.
+    System.out.println("Is player currently playing?: " + player.startTrack(track, true));
     if (!player.startTrack(track, true)) {
       queue.offer(track);
     }
@@ -81,16 +82,6 @@ public class TrackScheduler extends AudioEventAdapter {
     Iterator iter = this.queue.iterator();
     this.player.stopTrack();
     this.queue.clear();
-
-  }
-
-  public void setLoop(ArrayList<String> playlist, boolean bool){
-
-  }
-
-  @Override
-  public void onTrackStart(AudioPlayer player, AudioTrack track) {
-    super.onTrackStart(player, track);
 
   }
 }

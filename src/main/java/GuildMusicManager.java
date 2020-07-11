@@ -30,7 +30,6 @@ public class GuildMusicManager {
    * @return Wrapper around AudioPlayer to use it as an AudioSendHandler.
    */
   public AudioSendHandler getSendHandler() {
-    player.stopTrack();
     return new AudioPlayerSendHandler(player);
   }
 
