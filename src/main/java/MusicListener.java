@@ -189,7 +189,7 @@ public class MusicListener extends ListenerAdapter {
 
             @Override
             public void loadFailed(FriendlyException exception) {
-                channel.sendMessage("Could not play: " + exception.getMessage()).queue();
+                channel.sendMessage(exception.getCause().toString()).queue();
 
             }
         });
@@ -222,7 +222,7 @@ public class MusicListener extends ListenerAdapter {
 
             @Override
             public void loadFailed(FriendlyException exception) {
-                channel.sendMessage("Could not play: " + exception.getMessage()).queue();
+                channel.sendMessage("Could not play: " + exception.getCause().toString()).queue();
 
             }
         });
@@ -283,12 +283,18 @@ public class MusicListener extends ListenerAdapter {
             ArrayList<String> titles = musicManagers.get(event.getGuild().getIdLong()).scheduler.getList();
             String tmp = "";
             if(size > 0 && titles.size() > 0 ){
-                for(String song : titles){
-                    tmp = tmp + song + "\n";
-                }
-
                 EmbedBuilder playlistEB = new EmbedBuilder();
                 playlistEB.setColor(Color.RED);
+                for(String song : titles){
+                    if(tmp.length() >= 1000){
+                        playlistEB.addField("", tmp, true);
+                        tmp ="";
+                    } else {
+                        tmp = tmp + song + "\n";
+                    }
+                }
+
+
                 playlistEB.setTitle("Songs in current queue");
                 playlistEB.addField("", tmp, true);
                 event.getChannel().sendMessage(playlistEB.build()).queue();
@@ -389,7 +395,6 @@ public class MusicListener extends ListenerAdapter {
                 URL embededURL = new URL("http://www.youtube.com/oembed?url=" +
                         youtubeUrl + "&format=json"
                 );
-
                 return new JSONObject(IOUtils.toString(embededURL)).getString("title");
             }
 
@@ -402,7 +407,7 @@ public class MusicListener extends ListenerAdapter {
 
     public void newPlaylist(String[] command, GuildMessageReceivedEvent event){
         if (command.length == 2) {
-            Playlist playlist = new Playlist(command[1], new ArrayList<String>());
+            Playlist playlist = new Playlist(command[1], new ArrayList<String>(), new ArrayList<String>());
             musicPlaylist.add(playlist);
             event.getChannel().sendMessage("Added " + playlist.getName() + " to playlists").queue();
 
@@ -457,18 +462,54 @@ public class MusicListener extends ListenerAdapter {
         }
 
         if(listName!=null){
-            for(int x =0; x<musicPlaylist.size(); x++){
-                if(musicPlaylist.get(x).getName().equals(listName)){
-                    songlist = musicPlaylist.get(x).getPlaylist();
-                    String s = "";
-                    for(String song : songlist){
-                        s = s + getTitleQuietly(song) + "\n";
+            EmbedBuilder playlistEB = new EmbedBuilder();
+            playlistEB.setColor(Color.RED);
+//            for(int x =0; x<musicPlaylist.size(); x++){
+//                if(musicPlaylist.get(x).getName().equals(listName)){
+//                    songlist = musicPlaylist.get(x).getPlaylist();
+//                    String s = "";
+//                    for(String song : songlist){
+//                        if(s.length() >= 1000){
+//                            playlistEB.addField("", s, false);
+//                            s = "";
+//                        } else {
+//                            String tmp = getTitleQuietly(song) + "\n";
+//                            if(tmp!=null){
+//                                s = s + tmp;
+//                            } else {
+//
+//                            }
+//
+//                        }
+//
+//                    }
+
+                    for(int x = 0; x < musicPlaylist.size(); x ++){
+                        if(musicPlaylist.get(x).getName().equals(listName)){
+                            songlist = musicPlaylist.get(x).getTitles();
+                            String s = "";
+
+                            for(String song : songlist){
+                                if(s.length() >= 1000){
+                            playlistEB.addField("", s, false);
+                            s = "";
+                        } else {
+                            String tmp = song + "\n";
+                            if(tmp!=null){
+                                s = s + tmp;
+                            } else {
+
+                            }
+
+
+                        }
                     }
-                    EmbedBuilder playlistEB = new EmbedBuilder();
-                    playlistEB.setColor(Color.RED);
+//                    EmbedBuilder playlistEB = new EmbedBuilder();
+//                    playlistEB.setColor(Color.RED);
                     playlistEB.setTitle(musicPlaylist.get(x).getName() + " songs");
-                    playlistEB.addField("", s, true);
+                    playlistEB.addField("", s, false);
                     event.getChannel().sendMessage(playlistEB.build()).queue();
+                    break;
 
                 } else {
                     if( x == musicPlaylist.size()-1 && !musicPlaylist.get(x).getName().equals(listName)){
@@ -769,18 +810,17 @@ public class MusicListener extends ListenerAdapter {
         return  t;
         }
 
-
-
-
-
     // Inner class for game type playlists. Arraylist gets populated from text files.
     class Playlist {
         String name;
         ArrayList<String> urlList;
+        ArrayList<String> title;
 
-        public Playlist(String name, ArrayList<String> urlList){
+        public Playlist(String name, ArrayList<String> urlList, ArrayList<String> title){
             this.name = name;
             this.urlList = urlList;
+            this.title = title;
+
         }
 
         public String getName() {
@@ -793,18 +833,39 @@ public class MusicListener extends ListenerAdapter {
 
         public void addURL(String url) {
             urlList.add(url);
+            title.add(getTitleQuietly(url));
+
         }
 
-        public boolean removeSongByTitle(String title){
-            boolean isTrue = false;
+        public ArrayList<String> getTitles(){
+            return  this.title;
+        }
 
-            for(int x = 0; x < urlList.size(); x ++){
-                if(getTitleQuietly(urlList.get(x)).equals(title)){
+        public boolean removeSongByTitle(String titleName){
+            boolean isTrue = false;
+            System.out.println("Remove Song titl:" + titleName);
+//            for(int x = 0; x < urlList.size(); x ++){
+//                System.out.println("Retrieved TITLE URL:" + getTitleQuietly(urlList.get(x)));
+//                if(getTitleQuietly(urlList.get(x)).equals(title)){
+//                    urlList.remove(x);
+//                    System.out.println("MATCHED TITLES");
+//                    isTrue = true;
+//                } else if(x == urlList.size()){
+//                    isTrue = false;
+//                }
+//            }
+//            return isTrue;
+            for(int x = 0; x < title.size(); x++){
+                if(title.get(x).equals(titleName)){
+                    System.out.println("Matched remove ");
                     urlList.remove(x);
-                    System.out.println("MATCHED TITLE");
+                    title.remove(x);
                     isTrue = true;
-                } else if(x == urlList.size()){
+                    break;
+                } else if(x == title.size()-1 && !title.get(x).equals(titleName)){
+                    System.out.println("Cannot find title to remove");
                     isTrue = false;
+
                 }
             }
             return isTrue;
