@@ -29,6 +29,7 @@ public class MusicListener extends ListenerAdapter {
     public ArrayList<Playlist> musicPlaylist = new ArrayList<>();
 
 
+
     public MusicListener() {
         this.musicManagers = new HashMap<>();
 
@@ -115,7 +116,6 @@ public class MusicListener extends ListenerAdapter {
                 if (command.length == 2) {
             VoiceChannel voiceChannel = event.getMember().getVoiceState().getChannel();
             if(voiceChannel == null){event.getChannel().sendMessage("Join a voice channel before attempting to play.. ").queue();
-
             } else {
                 loadAndPlay(event.getChannel(), command[1], voiceChannel);
             }
@@ -150,12 +150,76 @@ public class MusicListener extends ListenerAdapter {
 
                 break;
 
+            case "!loop":
+                if(command.length == 2){
+                    if(command[1].equals("true")){
+                        isLooping(true, event);
+                    } else if(command[1].equals("false")){
+                        isLooping(false, event);
+                    } else {
+                        event.getChannel().sendMessage("Syntax error").queue();
+                    }
+                }
+
+                break;
+
+            case "!setLoop":
+                setLoop(command, event);
+                break;
 
             default:
                 break;
         }
 
             super.onGuildMessageReceived(event);
+    }
+
+    public void setLoop(String[] commands, GuildMessageReceivedEvent event){
+       String playlistName = null;
+        try{  playlistName = commands[1];}
+       catch (Exception e){
+         event.getChannel().sendMessage("Syntax Error, !loop boolean").queue();
+         return;
+       }
+        if(playlistName != null){
+            try {
+                if (musicManagers.get(event.getGuild().getIdLong()).scheduler.loop != true) {
+                    event.getChannel().sendMessage("Use command '!loop true' to enable looping before setting playlist").queue();
+                    return;
+                }
+            } catch (NullPointerException e) {
+                event.getChannel().sendMessage("Add playlist to queue before attempting to loop").queue();
+                return;
+            }
+           for(int x = 0; x < musicPlaylist.size(); x++){
+               if(playlistName.equals(musicPlaylist.get(x).getName())){
+                   try {
+                       musicManagers.get(event.getGuild().getIdLong()).scheduler.setMusicListener(this, event.getMember().getVoiceState().getChannel(), event.getChannel(), musicPlaylist.get(x));
+                       event.getChannel().sendMessage("Looping playlist " + musicPlaylist.get(x).getName()).queue();
+                       return;
+                   } catch (NullPointerException e){
+                       event.getChannel().sendMessage("Add playlist to queue before attempting to loop").queue();
+                   }
+
+
+               }
+
+           }
+            event.getChannel().sendMessage("Playlist not found, try again").queue();
+            return;
+        } else {
+            event.getChannel().sendMessage("Syntax error, !setLoop playlistName").queue();
+        }
+    }
+
+    public void isLooping(boolean bool, GuildMessageReceivedEvent event){
+        try {
+            musicManagers.get(event.getGuild().getIdLong()).scheduler.isLooping(bool);
+        } catch (NullPointerException e){
+            event.getChannel().sendMessage("Add playlist to queue before attempting to loop").queue();
+            return;
+        }
+        event.getChannel().sendMessage("Set Looping " + bool).queue();
     }
 
     private void loadAndPlay(final TextChannel channel, final String trackUrl, VoiceChannel vc) {
@@ -194,8 +258,7 @@ public class MusicListener extends ListenerAdapter {
             }
         });
     }
-
-    private void loadAndPlayQuiet(final TextChannel channel, final String trackUrl, VoiceChannel vc) {
+    public void loadAndPlayQuiet(final TextChannel channel, final String trackUrl, VoiceChannel vc) {
         GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
 
         playerManager.loadItemOrdered(musicManager, trackUrl, new AudioLoadResultHandler() {
@@ -251,6 +314,8 @@ public class MusicListener extends ListenerAdapter {
         String remove = "\n           Removes songtitle from playlist. " +
                 "List the name exactly as it appears. Use !listSongs cmd to get titles.";
         String shuffle = "\n          Shuffles playlist and adds to queue";
+        String loop = "\n          Enable or disable playlist looping";
+        String setLoop = "\n          Sets the playlist to be looped. Loop only occurs when the last song in queue finishes.";
 
 
         eb.addField("!queue", queue, false);
@@ -268,6 +333,8 @@ public class MusicListener extends ListenerAdapter {
         eb.addField("!shuffle playlistName", shuffle, false);
         eb.addField("!removePlaylist playlistName", removePlaylist, false);
         eb.addField("!remove playlistName songTitle", remove, false);
+        eb.addField("!loop boolean", loop, false);
+        eb.addField("!setLoop playlistName", setLoop, false);
 
         event.getChannel().sendMessage(eb.build()).queue();
     }
@@ -351,7 +418,7 @@ public class MusicListener extends ListenerAdapter {
         GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
         musicManager.scheduler.nextTrack();
 
-        channel.sendMessage("Skipped to next track: " +  musicManager.player.getPlayingTrack().getInfo().title).queue();
+        try { channel.sendMessage("Skipped to next track: " +  musicManager.player.getPlayingTrack().getInfo().title).queue();} catch (NullPointerException e) {channel.sendMessage("Cannot skip to next song, queue empty.");}
     }
 
     private static void connectToFirstVoiceChannel(AudioManager audioManager, VoiceChannel vc) {
@@ -519,6 +586,10 @@ public class MusicListener extends ListenerAdapter {
                 }
             }
         }
+    }
+
+    public void test(String s){
+        System.out.println("SmokeScreen");
     }
 
     public void listPlaylists(String[] command, GuildMessageReceivedEvent event) {

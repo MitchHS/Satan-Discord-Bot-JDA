@@ -6,11 +6,14 @@ import net.dv8tion.jda.api.audio.AudioSendHandler;
 /**
  * Holder for both the player and a track scheduler for one guild.
  */
+/**
+ * Holder for both the player and a track scheduler for one guild.
+ */
 public class GuildMusicManager {
   /**
    * Audio player for the guild.
    */
-  public  AudioPlayer player;
+  public final AudioPlayer player;
   /**
    * Track scheduler for the player.
    */
@@ -29,8 +32,7 @@ public class GuildMusicManager {
   /**
    * @return Wrapper around AudioPlayer to use it as an AudioSendHandler.
    */
-  public AudioSendHandler getSendHandler() {
+  public AudioPlayerSendHandler getSendHandler() {
     return new AudioPlayerSendHandler(player);
   }
-
 }

@@ -5,6 +5,8 @@ import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
+import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.VoiceChannel;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -16,7 +18,12 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class TrackScheduler extends AudioEventAdapter {
   private final AudioPlayer player;
-  private final BlockingQueue<AudioTrack> queue;
+  public final BlockingQueue<AudioTrack> queue;
+  public MusicListener musicListener;
+  public boolean loop;
+  public MusicListener.Playlist playlist;
+  public TextChannel tc;
+  public VoiceChannel vc;
 
   /**
    * @param player The audio player this scheduler uses
@@ -35,7 +42,6 @@ public class TrackScheduler extends AudioEventAdapter {
     // Calling startTrack with the noInterrupt set to true will start the track only if nothing is currently playing. If
     // something is playing, it returns false and does nothing. In that case the player was already playing so this
     // track goes to the queue instead.
-    System.out.println("Is player currently playing?: " + player.startTrack(track, true));
     if (!player.startTrack(track, true)) {
       queue.offer(track);
     }
@@ -54,7 +60,14 @@ public class TrackScheduler extends AudioEventAdapter {
   public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
     // Only start the next track if the end reason is suitable for it (FINISHED or LOAD_FAILED)
     if (endReason.mayStartNext) {
-      nextTrack();
+      if(loop){
+        if(getSize() <= 1){
+          LoopSongs(playlist.getPlaylist(), vc, tc);
+        }
+        nextTrack();
+      } else {
+        nextTrack();
+      }
     }
   }
 
@@ -74,9 +87,34 @@ public class TrackScheduler extends AudioEventAdapter {
     }
     return titles;
 
-   // this.queue.stream.map(AudioTrack::getInfo).map(AudioTrackInfo::title).collect();
+    // this.queue.stream.map(AudioTrack::getInfo).map(AudioTrackInfo::title).collect();
 
   }
+
+  public void LoopSongs(ArrayList<String> songlist, VoiceChannel vc, TextChannel tc){
+    if(this.musicListener== null){
+      throw new NullPointerException("MusicListener cannot be null");
+    } else {
+      for(int x = 0; x < songlist.size(); x ++ ){
+        musicListener.loadAndPlayQuiet(tc, songlist.get(x), vc);
+      }
+
+    }
+  }
+
+  public boolean isLooping(boolean bool){
+    this.loop = bool;
+    return true;
+  }
+
+  public void setMusicListener(MusicListener m, VoiceChannel vc, TextChannel tc, MusicListener.Playlist playlist){
+    this.musicListener = m;
+    this.vc = vc;
+    this.tc = tc;
+    this.playlist = playlist;
+  }
+
+
 
   public void purge() {
     this.player.stopTrack();
