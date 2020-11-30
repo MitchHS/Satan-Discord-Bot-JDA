@@ -371,6 +371,7 @@ public class MusicListener extends ListenerAdapter {
                 event.getChannel().sendMessage("No songs in current queue").queue();
             }
         } catch (Exception e){
+            System.out.println("Exception getQueueTitles ");
             event.getChannel().sendMessage("No songs in current queue").queue();
         }
 

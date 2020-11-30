@@ -35,6 +35,7 @@ public class MessageListener extends ListenerAdapter
 
         if (content.equals("!ping"))
         {
+            System.out.println("PING CATCH");
             Member member = event.getMember();
             String name = member.getUser().getId();
             TextChannel textChannel = event.getTextChannel();

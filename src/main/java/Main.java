@@ -1,4 +1,5 @@
 
+
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
@@ -30,7 +31,7 @@ public class Main extends ListenerAdapter {
 
     {
         String menuOption;
-        String token = "NzE2NTMwMDI1MzQzNzQ2MTI5.XtTk3Q.JHgRm1rw98rvA8Ls_QrqleElyWI";
+        String token = "NzE2NTMwMDI1MzQzNzQ2MTI5.XtNGlg.CrXrkJEAOj24xP4ljODDMEc59Tg";
         JDA jda = null;
         MusicListener musicListener = new MusicListener();
         VoiceEventListener voiceEventListener = new VoiceEventListener();
@@ -46,7 +47,7 @@ public class Main extends ListenerAdapter {
         }
 
         Scanner in = new Scanner(System.in);
-        jda = new JDABuilder(token).build();
+        jda = JDABuilder.createDefault(token).build();
                     jda.addEventListener(voiceEventListener);
                     jda.addEventListener(messageListener);
                     jda.addEventListener(musicListener);
