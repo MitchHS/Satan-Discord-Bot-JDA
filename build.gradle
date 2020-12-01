@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'com.Github.JDA'
-version '1.1-SNAPSHOT'
+version '1.0-SNAPSHOT'
 
 repositories {
     mavenCentral()
@@ -12,19 +12,8 @@ repositories {
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-    compile "net.dv8tion:JDA:4.2.0_214"
-=======
+
     compile "net.dv8tion:JDA:4.2.0_222"
->>>>>>> Stashed changes
-=======
-    compile "net.dv8tion:JDA:4.2.0_222"
->>>>>>> Stashed changes
-=======
-    compile "net.dv8tion:JDA:4.2.0_214"
->>>>>>> parent of dd73f5c... JDA Builder syntax
     compile 'org.json:json:20171018'
-    implementation 'com.sedmelluq:lavaplayer:1.3.49'
+    implementation 'com.sedmelluq:lavaplayer:1.3.62'
 }

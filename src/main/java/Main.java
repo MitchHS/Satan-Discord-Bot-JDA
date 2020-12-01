@@ -1,5 +1,4 @@
 
-
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
@@ -30,23 +29,10 @@ public class Main extends ListenerAdapter {
     public static void main(String[] args) throws LoginException
 
     {
-        String menuOption;
-        String token = "NzE2NTMwMDI1MzQzNzQ2MTI5.XtNGlg.CrXrkJEAOj24xP4ljODDMEc59Tg";
-<<<<<<< HEAD
 
-       // JDA jda = null;
+        String token = "NzE2NTMwMDI1MzQzNzQ2MTI5.XtTk3Q.JHgRm1rw98rvA8Ls_QrqleElyWI";
 
 
-        JDABuilder jda = JDABuilder.createDefault(token);
-
-                    jda.addEventListeners(voiceEventListener);
-                    jda.addEventListeners(messageListener);
-                    jda.addEventListeners(musicListener);
-                    jda.addEventListeners(serverConnectionListener);
-                    jda.build();
-
-=======
-        JDA jda = null;
         MusicListener musicListener = new MusicListener();
         VoiceEventListener voiceEventListener = new VoiceEventListener();
         MessageListener messageListener = new MessageListener();
@@ -60,13 +46,15 @@ public class Main extends ListenerAdapter {
             e.printStackTrace();
         }
 
-        Scanner in = new Scanner(System.in);
-        jda = JDABuilder.createDefault(token).build();
-                    jda.addEventListener(voiceEventListener);
-                    jda.addEventListener(messageListener);
-                    jda.addEventListener(musicListener);
-                    jda.addEventListener(serverConnectionListener);
->>>>>>> parent of dd73f5c... JDA Builder syntax
+
+        JDABuilder jda = JDABuilder.createDefault(token);
+
+        jda.addEventListeners(voiceEventListener);
+        jda.addEventListeners(messageListener);
+        jda.addEventListeners(musicListener);
+        jda.addEventListeners(serverConnectionListener);
+        jda.build();
+
 
 
         System.out.println("Connected to server");
