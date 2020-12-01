@@ -1,22 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="CompilerConfiguration">
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-    <bytecodeTargetLevel target="9" />
-=======
     <bytecodeTargetLevel target="13" />
->>>>>>> Stashed changes
-=======
-    <bytecodeTargetLevel target="13" />
->>>>>>> Stashed changes
-=======
-    <bytecodeTargetLevel target="9" />
->>>>>>> parent of dd73f5c... JDA Builder syntax
-=======
-    <bytecodeTargetLevel target="8" />
->>>>>>> parent of bfd1d12... JDA syntax update
   </component>
 </project>
