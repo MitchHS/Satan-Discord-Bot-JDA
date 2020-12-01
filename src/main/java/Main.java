@@ -32,6 +32,7 @@ public class Main extends ListenerAdapter {
     {
         String menuOption;
         String token = "NzE2NTMwMDI1MzQzNzQ2MTI5.XtNGlg.CrXrkJEAOj24xP4ljODDMEc59Tg";
+<<<<<<< HEAD
 
        // JDA jda = null;
 
@@ -44,6 +45,28 @@ public class Main extends ListenerAdapter {
                     jda.addEventListeners(serverConnectionListener);
                     jda.build();
 
+=======
+        JDA jda = null;
+        MusicListener musicListener = new MusicListener();
+        VoiceEventListener voiceEventListener = new VoiceEventListener();
+        MessageListener messageListener = new MessageListener();
+        ServerConnectionListener serverConnectionListener = new ServerConnectionListener();
+
+        Thread t = musicListener.init();
+        t.start();
+        try {
+            t.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        Scanner in = new Scanner(System.in);
+        jda = JDABuilder.createDefault(token).build();
+                    jda.addEventListener(voiceEventListener);
+                    jda.addEventListener(messageListener);
+                    jda.addEventListener(musicListener);
+                    jda.addEventListener(serverConnectionListener);
+>>>>>>> parent of dd73f5c... JDA Builder syntax
 
 
         System.out.println("Connected to server");

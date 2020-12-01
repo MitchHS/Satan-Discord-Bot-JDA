@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="CompilerConfiguration">
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
     <bytecodeTargetLevel target="9" />
@@ -10,5 +11,8 @@
 =======
     <bytecodeTargetLevel target="13" />
 >>>>>>> Stashed changes
+=======
+    <bytecodeTargetLevel target="9" />
+>>>>>>> parent of dd73f5c... JDA Builder syntax
   </component>
 </project>
