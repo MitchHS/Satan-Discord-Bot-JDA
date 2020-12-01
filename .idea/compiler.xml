@@ -2,7 +2,11 @@
 <project version="4">
   <component name="CompilerConfiguration">
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     <bytecodeTargetLevel target="9" />
+=======
+    <bytecodeTargetLevel target="13" />
+>>>>>>> Stashed changes
 =======
     <bytecodeTargetLevel target="13" />
 >>>>>>> Stashed changes

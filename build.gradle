@@ -13,7 +13,11 @@ repositories {
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     compile "net.dv8tion:JDA:4.2.0_214"
+=======
+    compile "net.dv8tion:JDA:4.2.0_222"
+>>>>>>> Stashed changes
 =======
     compile "net.dv8tion:JDA:4.2.0_222"
 >>>>>>> Stashed changes
