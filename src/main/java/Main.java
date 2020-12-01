@@ -32,7 +32,11 @@ public class Main extends ListenerAdapter {
     {
         String menuOption;
         String token = "NzE2NTMwMDI1MzQzNzQ2MTI5.XtNGlg.CrXrkJEAOj24xP4ljODDMEc59Tg";
+<<<<<<< Updated upstream
         JDA jda = null;
+=======
+       // JDA jda = null;
+>>>>>>> Stashed changes
         MusicListener musicListener = new MusicListener();
         VoiceEventListener voiceEventListener = new VoiceEventListener();
         MessageListener messageListener = new MessageListener();
@@ -47,11 +51,21 @@ public class Main extends ListenerAdapter {
         }
 
         Scanner in = new Scanner(System.in);
+<<<<<<< Updated upstream
         jda = JDABuilder.createDefault(token).build();
                     jda.addEventListener(voiceEventListener);
                     jda.addEventListener(messageListener);
                     jda.addEventListener(musicListener);
                     jda.addEventListener(serverConnectionListener);
+=======
+        JDABuilder jda = JDABuilder.createDefault(token);
+
+                    jda.addEventListeners(voiceEventListener);
+                    jda.addEventListeners(messageListener);
+                    jda.addEventListeners(musicListener);
+                    jda.addEventListeners(serverConnectionListener);
+                    jda.build();
+>>>>>>> Stashed changes
 
 
         System.out.println("Connected to server");
