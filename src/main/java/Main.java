@@ -17,7 +17,7 @@ public class Main extends ListenerAdapter {
 
 //     public static void main(String[] args) {
 //          JDA jda;
-//          String token = "NzE2NTMwMDI1MzQzNzQ2MTI5.XtTk3Q.JHgRm1rw98rvA8Ls_QrqleElyWI";
+//          String token = "YourToken";
 //
 //          try{
 //                jda = new JDABuilder("token").build();
@@ -30,7 +30,7 @@ public class Main extends ListenerAdapter {
 
     {
 
-        String token = "NzE2NTMwMDI1MzQzNzQ2MTI5.XtNGlg.CrXrkJEAOj24xP4ljODDMEc59Tg";
+        String token = "TOKEN";
 
 
         MusicListener musicListener = new MusicListener();
