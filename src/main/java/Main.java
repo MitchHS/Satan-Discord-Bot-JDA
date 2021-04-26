@@ -30,7 +30,7 @@ public class Main extends ListenerAdapter {
 
     {
 
-        String token = "TOKEN";
+        String token = "KEY";
 
 
         MusicListener musicListener = new MusicListener();

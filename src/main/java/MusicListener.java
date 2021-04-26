@@ -14,9 +14,11 @@ import org.apache.commons.io.IOUtils;
 
 import java.awt.*;
 import java.io.*;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.*;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 
@@ -458,19 +460,76 @@ public class MusicListener extends ListenerAdapter {
 
     // Title of youtube url
     public static String getTitleQuietly(String youtubeUrl) {
+        String[] split = youtubeUrl.split("v=");
+
+        if(split.length < 2){
+            System.out.println("Error Splitting youtube URL: " + youtubeUrl);
+            return null;
+        }
+
+        String videoID = split[1];
+
+        if (videoID.length() < 3)
+        {
+            System.out.println("Video ID Error: " + videoID.length());
+            return null;
+        }
+
         try {
-            if (youtubeUrl != null) {
-                URL embededURL = new URL("http://www.youtube.com/oembed?url=" +
-                        youtubeUrl + "&format=json"
-                );
-                return new JSONObject(IOUtils.toString(embededURL)).getString("title");
+
+            String API_KEY = "API KEY";
+
+            String request_url = "https://www.googleapis.com/youtube/v3/videos?id=" + videoID + "&key=" + API_KEY +
+                    "&fields=items(id,snippet(channelId,title,categoryId),statistics)&part=snippet,statistics";
+            System.out.println("[*] " + request_url);
+
+            URL url = new URL(request_url);
+
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            conn.connect();
+
+            int responsecode = conn.getResponseCode();
+
+            if (responsecode < 400){
+                System.out.println("Response Code: " + Integer.toString(responsecode));
+                String inline = "";
+                Scanner scanner = new Scanner(url.openStream());
+
+                //Write all the JSON data into a string using a scanner
+                while (scanner.hasNext()) {
+                    inline += scanner.nextLine();
+                }
+
+                //Close the scanner
+                scanner.close();
+
+
+                JSONObject obj = new JSONObject(inline);
+
+                JSONArray items = (JSONArray) obj.get("items");
+                JSONObject itemZero = (JSONObject) items.get(0);
+                JSONObject snippet = (JSONObject) itemZero.get("snippet");
+                String title = (String) snippet.get("title");
+
+                //String title = snippet.getString("title");
+
+
+                System.out.println("URL:" + youtubeUrl + "\nTitle: " + title);
+                return title;
+
+            } else {
+                System.out.println("Error code for URL:"+ youtubeUrl + "\nError code: " + responsecode);
             }
 
         } catch (Exception e) {
             e.printStackTrace();
         }
+
         return null;
     }
+
+
 
 
     public void newPlaylist(String[] command, GuildMessageReceivedEvent event){
@@ -647,9 +706,12 @@ public class MusicListener extends ListenerAdapter {
 
                         if(fName.equals(name)){
                             if(files[x].length() < 1) {
-                                System.out.println("Writing to file: " + name + " with data : " + url);
+
                                 FileWriter myWriter = new FileWriter(files[x], true);
-                                myWriter.write(url);
+                                String title = getTitleQuietly(url);
+                                String data = url + "," + title;
+                                System.out.println("Writing to file: " + name + " with data : " + data);
+                                myWriter.write(data);
 
                                 myWriter.close();
                             } else {
@@ -818,9 +880,11 @@ public class MusicListener extends ListenerAdapter {
                 while ((currentLine = reader.readLine()) != null) {
                     // trim newline when comparing with lineToRemove
                     String trimmedLine = currentLine.trim();
+                    String[] split = trimmedLine.split(",");
+                    String title_line = split[1];
                     //  if (trimmedLine.equals(lineToRemove)) continue;
-                    if (getTitleQuietly(trimmedLine).equals(lineToRemove)) {
-                        System.out.println("txt file lines mathc");
+                    if (title_line.equals(lineToRemove)) {
+                        System.out.println("txt file lines match");
                         continue;
                     }
 
@@ -840,7 +904,7 @@ public class MusicListener extends ListenerAdapter {
     // init Directories for playlists, read existing playlists.
     public Thread init(){
         Thread t = new Thread(() -> {
-            String workingDir = System.getProperty("user.dir");
+         //   String workingDir = System.getProperty("user.dir");
             File playlists = new File(System.getProperty("users.dir") + "playlists");
             if(playlists.exists() && playlists.isDirectory()){
                 System.out.println("Environment existing - Ready..");
@@ -853,10 +917,19 @@ public class MusicListener extends ListenerAdapter {
                             ArrayList<String> urlList = new ArrayList<>();
                             ArrayList<String> titleList = new ArrayList<>();
                             Scanner myReader = new Scanner(listFiles[x]);
+
                             while (myReader.hasNextLine()){
-                                String url = myReader.nextLine();
-                                urlList.add(url);
-                                titleList.add(getTitleQuietly(url));
+                                String line = myReader.nextLine();
+                                String[] split = line.split(",");
+
+                                if (split.length < 2){
+                                    System.out.println("[*] Error reading line of file, no split " +
+                                            listFiles[x].toString());
+                                    continue;
+                                }
+
+                                urlList.add(split[0]);
+                                titleList.add(split[1]);
                             }
                             musicPlaylist.add(new Playlist(listFiles[x].getName().replace(".txt", ""), urlList, titleList));
                             myReader.close();
